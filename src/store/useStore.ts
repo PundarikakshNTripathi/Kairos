@@ -12,12 +12,16 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { indexedDBStorage } from './storage';
 import { supabase } from '../lib/supabase';
 
+import type { User } from '@supabase/supabase-js';
+
 interface AppState {
+  user: User | null;
   birthDate: string | null;
   logs: Record<string, string>; // keyed by date string 'yyyy-MM-dd'
   priorities: string[];
   hasHydrated: boolean;
   
+  setUser: (user: User | null) => void;
   setBirthDate: (date: string | null) => void;
   setLog: (dateKey: string, text: string) => void;
   setPriorities: (priorities: string[]) => void;
@@ -31,6 +35,7 @@ interface AppState {
 export const useStore = create<AppState>()(
   persist(
     (set) => ({
+      user: null,
       birthDate: null,
       logs: {},
       priorities: ['', '', ''],
@@ -38,6 +43,7 @@ export const useStore = create<AppState>()(
       isJournalOpen: false,
       activeJournalDate: null,
       
+      setUser: (user) => set({ user }),
       setBirthDate: (date) => {
         set({ birthDate: date });
         if (supabase) {
