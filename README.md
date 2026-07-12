@@ -72,7 +72,8 @@ graph TD
 - **Limitless Executive Focus:** Unbounded priority boarding.
 - **Command Palette Journal:** Deeply integrated global `Ctrl+K` journaling on Desktop, and an adaptive Floating Action Button on Mobile.
 - **Accurate Hex Theming:** "Black Panther Vibranium" dark mode and "Barbie Doll Pinks" light mode.
-- **Hybrid Storage & Privacy:** Instant offline caching via IndexedDB, synced to Supabase secured by Row Level Security (RLS).
+- **Passwordless Authentication:** Secure login via Email Magic Links or GitHub OAuth.
+- **Hybrid Storage & Privacy:** Instant offline caching via IndexedDB, seamlessly synced to Supabase (secured by strict Row Level Security).
 - **Bulletproof Security:** Secured with Content-Security-Policy (CSP) headers and DOMPurify for absolute XSS immunity.
 - **PWA Ready:** Install natively to Windows, Mac, iOS, or Android without App Stores.
 
