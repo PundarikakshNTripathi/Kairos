@@ -6,7 +6,7 @@ export function Guide() {
       <div className="space-y-4">
         <h2 className="text-4xl font-light tracking-tight text-primary">The Core Philosophy</h2>
         <p className="text-lg text-muted-foreground leading-relaxed">
-          Kairos (meaning "the right, critical, or opportune moment") was built to strip away the bloated features of modern productivity apps. It enforces a strict, visually commanding interface that contextualizes your daily tasks against the sheer scale of your entire lifespan.
+          Kairos (meaning the right, critical, or opportune moment) was built to strip away the bloated features of modern productivity apps. It enforces a strict, visually commanding interface that contextualizes your daily tasks against the sheer scale of your entire lifespan.
         </p>
       </div>
 
@@ -16,7 +16,7 @@ export function Guide() {
             <CardTitle className="text-xl font-light tracking-wide">Why It Exists</CardTitle>
           </CardHeader>
           <CardContent className="text-muted-foreground leading-relaxed">
-            Most productivity apps lose the forest for the trees. By visually mapping out 90 years of your life as a grid, Kairos puts your daily micro-tasks into perspective. It creates a healthy sense of urgency—each box represents a day, and once it's gone, it's shaded out forever.
+            Most productivity apps lose the forest for the trees. By visually mapping out 90 years of your life as a grid, Kairos puts your daily microtasks into perspective. It creates a healthy sense of urgency. Each box represents a single day, and once it is gone, it is shaded out forever.
           </CardContent>
         </Card>
         
@@ -25,7 +25,27 @@ export function Guide() {
             <CardTitle className="text-xl font-light tracking-wide">What It Solves</CardTitle>
           </CardHeader>
           <CardContent className="text-muted-foreground leading-relaxed">
-            It eliminates priority bloat. The Executive Focus board enforces a strict limit on your active priorities. The command palette journal (Ctrl+K) offers instant, frictionless brain dumping. Everything works instantly offline via IndexedDB.
+            It eliminates priority bloat. The Executive Focus board enforces a strict limit on your active priorities. The command palette journal offers instant, frictionless brain dumping. Everything works instantly offline via local storage.
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="border-border/50 bg-card shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-xl font-light tracking-wide">Hybrid Cloud Sync</CardTitle>
+          </CardHeader>
+          <CardContent className="text-muted-foreground leading-relaxed">
+            Kairos operates on a hybrid storage model. When you log a journal entry or update a priority, the data is instantly written to your browser's local IndexedDB for zero latency. In the background, it silently syncs this data to a remote Supabase PostgreSQL database, ensuring your progress is never lost and is available across all your devices.
+          </CardContent>
+        </Card>
+        
+        <Card className="border-border/50 bg-card shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-xl font-light tracking-wide">Security Measures</CardTitle>
+          </CardHeader>
+          <CardContent className="text-muted-foreground leading-relaxed">
+            Security is treated as a first class feature. All data written to the database is protected by strict Row Level Security (RLS) policies, meaning no one else can read or modify your private logs. Furthermore, the application employs DOMPurify to aggressively sanitize any text before rendering it, creating absolute immunity against Cross Site Scripting (XSS) attacks.
           </CardContent>
         </Card>
       </div>
