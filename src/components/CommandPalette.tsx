@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { useStore } from '@/store/useStore';
+import { getCurrentDateKey } from '@/lib/time';
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
+  const addLog = useStore((state) => state.addLog);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -21,7 +23,9 @@ export function CommandPalette() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      // Commit logic goes here later
+      if (text.trim()) {
+        addLog(getCurrentDateKey(), text.trim());
+      }
       setText('');
       setOpen(false);
     }

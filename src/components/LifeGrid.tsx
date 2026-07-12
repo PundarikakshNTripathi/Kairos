@@ -1,12 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { differenceInDays } from 'date-fns';
+import { useStore } from '@/store/useStore';
+import { getDaysLived } from '@/lib/time';
 
-interface LifeGridProps {
-  birthDate: Date;
-}
-
-export function LifeGrid({ birthDate }: LifeGridProps) {
+export function LifeGrid() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const birthDate = useStore((state) => state.birthDate);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -15,8 +13,7 @@ export function LifeGrid({ birthDate }: LifeGridProps) {
     if (!ctx) return;
 
     const totalDays = 90 * 365; // ~32,850
-    const today = new Date();
-    const daysLived = differenceInDays(today, birthDate);
+    const daysLived = getDaysLived(birthDate);
 
     const dpr = window.devicePixelRatio || 1;
     const cols = 365;
