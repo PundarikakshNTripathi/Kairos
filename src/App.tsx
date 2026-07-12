@@ -40,7 +40,7 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, [setUser]);
 
-  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
 
   const handleSaveBirthDate = () => {
     if (dateInput) {
