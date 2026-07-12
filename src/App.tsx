@@ -9,16 +9,35 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Moon, Sun } from 'lucide-react';
 
+import { LoginButton } from './components/LoginButton';
+import { supabase } from './lib/supabase';
+
 export default function App() {
   const hasHydrated = useStore((state) => state.hasHydrated);
   const birthDate = useStore((state) => state.birthDate);
   const setBirthDate = useStore((state) => state.setBirthDate);
+  const setUser = useStore((state) => state.setUser);
   const [dateInput, setDateInput] = useState('');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
+
+  // Listen for Supabase Auth changes globally
+  useEffect(() => {
+    if (!supabase) return;
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [setUser]);
 
   const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
 
@@ -58,6 +77,7 @@ export default function App() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm font-mono text-muted-foreground/60 hidden sm:inline-block">Press Ctrl+K to Journal</span>
+          <LoginButton />
           <Button variant="outline" size="sm" onClick={() => { setDateInput(birthDate || ''); setBirthDate(null); }}>
             Edit Birthdate
           </Button>
