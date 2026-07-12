@@ -62,7 +62,7 @@ export function LoginButton() {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-sm">
           <DialogTitle>Cloud Sync Authentication</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-foreground/80 font-medium">
             Securely back up your journal and priorities across all your devices using Supabase.
           </DialogDescription>
           
@@ -92,8 +92,8 @@ export function LoginButton() {
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-border/50" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <div className="relative flex justify-center text-xs uppercase font-bold tracking-wider">
+                <span className="bg-background px-2 text-foreground/70">Or continue with</span>
               </div>
             </div>
 
