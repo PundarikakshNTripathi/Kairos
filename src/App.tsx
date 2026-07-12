@@ -17,8 +17,9 @@ export default function App() {
   const birthDate = useStore((state) => state.birthDate);
   const setBirthDate = useStore((state) => state.setBirthDate);
   const setUser = useStore((state) => state.setUser);
+  const theme = useStore((state) => state.theme);
+  const setTheme = useStore((state) => state.setTheme);
   const [dateInput, setDateInput] = useState('');
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');

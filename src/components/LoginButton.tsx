@@ -51,7 +51,7 @@ export function LoginButton() {
             Securely back up your journal and priorities across all your devices using Supabase.
           </DialogDescription>
           
-          <div className="flex flex-col gap-4 mt-4">
+          <div className="flex flex-col gap-3 mt-4">
             <Button 
               variant="outline" 
               className="w-full flex gap-2 items-center" 
@@ -59,8 +59,15 @@ export function LoginButton() {
             >
               Continue with GitHub
             </Button>
+            <Button 
+              variant="outline" 
+              className="w-full flex gap-2 items-center" 
+              onClick={() => supabase!.auth.signInWithOAuth({ provider: 'google' })}
+            >
+              Continue with Google
+            </Button>
             
-            <div className="relative">
+            <div className="relative mt-1 mb-1">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-border/50" />
               </div>
@@ -83,7 +90,7 @@ export function LoginButton() {
                   <Mail className="w-4 h-4" />
                 </Button>
               </div>
-              {message && <p className="text-xs text-center mt-2 text-muted-foreground">{message}</p>}
+              {message && <p className="text-[13px] font-medium text-center mt-2 text-destructive">{message}</p>}
             </form>
           </div>
         </DialogContent>

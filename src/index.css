@@ -9,19 +9,19 @@
   :root {
     /* Barbie Doll Pinks Theme */
     --background: #FACDE5;
-    --foreground: #660F3F; /* Dark pink contrast */
+    --foreground: #4A0A2D; /* Darker pink for better contrast */
     --card: #F7B9D7;
-    --card-foreground: #660F3F;
+    --card-foreground: #4A0A2D;
     --popover: #F7B9D7;
-    --popover-foreground: #660F3F;
+    --popover-foreground: #4A0A2D;
     --primary: #E0218A;
     --primary-foreground: #FFFFFF;
     --secondary: #F18DBC;
-    --secondary-foreground: #660F3F;
-    --muted: #ED5C9B;
-    --muted-foreground: #FFFFFF;
+    --secondary-foreground: #4A0A2D;
+    --muted: #F18DBC; /* Softer background */
+    --muted-foreground: #99175E; /* Dark pink for contrast instead of white */
     --accent: #F18DBC;
-    --accent-foreground: #660F3F;
+    --accent-foreground: #4A0A2D;
     --destructive: #E0218A;
     --destructive-foreground: #FFFFFF;
     --border: #ED5C9B;
@@ -33,26 +33,26 @@
 
   .dark {
     /* Black Panther's Vibranium Theme */
-    --background: #0C0B13;
-    --foreground: #C4A8FF;
+    --background: #0A0514; /* Darker purple, near black */
+    --foreground: #E0D4FF; /* Brighter foreground for contrast */
     --card: #1A0554;
-    --card-foreground: #C4A8FF;
+    --card-foreground: #E0D4FF;
     --popover: #1A0554;
-    --popover-foreground: #C4A8FF;
+    --popover-foreground: #E0D4FF;
     --primary: #C4A8FF;
-    --primary-foreground: #0C0B13;
-    --secondary: #664EAE;
+    --primary-foreground: #0A0514;
+    --secondary: #2C106B;
     --secondary-foreground: #FFFFFF;
-    --muted: #1A0554;
-    --muted-foreground: #664EAE;
-    --accent: #664EAE;
+    --muted: #2C106B;
+    --muted-foreground: #9F82DB; /* Improved contrast for muted text */
+    --accent: #2C106B;
     --accent-foreground: #FFFFFF;
-    --destructive: #664EAE;
+    --destructive: #E0218A;
     --destructive-foreground: #FFFFFF;
-    --border: #664EAE;
-    --input: #664EAE;
+    --border: #3A1B8C;
+    --input: #3A1B8C;
     --ring: #C4A8FF;
-    --app-bg: radial-gradient(circle at 50% 0%, #1A0554 0%, #0C0B13 100%);
+    --app-bg: radial-gradient(circle at 50% 0%, #1A0554 0%, #0A0514 100%);
   }
 }
 

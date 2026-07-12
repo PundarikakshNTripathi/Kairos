@@ -17,12 +17,14 @@ import type { User } from '@supabase/supabase-js';
 interface AppState {
   user: User | null;
   birthDate: string | null;
+  theme: 'light' | 'dark';
   logs: Record<string, string>; // keyed by date string 'yyyy-MM-dd'
   priorities: string[];
   hasHydrated: boolean;
   
   setUser: (user: User | null) => void;
   setBirthDate: (date: string | null) => void;
+  setTheme: (theme: 'light' | 'dark') => void;
   setLog: (dateKey: string, text: string) => void;
   setPriorities: (priorities: string[]) => void;
   setHasHydrated: (state: boolean) => void;
@@ -37,6 +39,7 @@ export const useStore = create<AppState>()(
     (set) => ({
       user: null,
       birthDate: null,
+      theme: 'light',
       logs: {},
       priorities: ['', '', ''],
       hasHydrated: false,
@@ -44,6 +47,7 @@ export const useStore = create<AppState>()(
       activeJournalDate: null,
       
       setUser: (user) => set({ user }),
+      setTheme: (theme) => set({ theme }),
       setBirthDate: (date) => {
         set({ birthDate: date });
         if (supabase) {
