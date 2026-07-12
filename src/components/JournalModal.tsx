@@ -94,7 +94,7 @@ export function JournalModal() {
           onKeyDown={handleKeyDown}
           onBlur={() => setLog(dateToUse, text)} 
           placeholder="Log your thoughts, milestones, or notes..."
-          className="flex-1 min-h-[300px] border-0 focus-visible:ring-0 resize-none bg-transparent text-lg font-light p-6 placeholder:text-muted-foreground/30 rounded-none"
+          className="flex-1 min-h-[300px] border-0 focus-visible:ring-0 resize-none bg-transparent text-lg font-light p-6 placeholder:text-muted-foreground/70 rounded-none"
           autoFocus
         />
       </DialogContent>

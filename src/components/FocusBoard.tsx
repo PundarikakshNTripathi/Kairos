@@ -43,14 +43,14 @@ export function FocusBoard() {
       <CardContent className="px-8 pb-8 space-y-6">
         {priorities.map((priority, i) => (
           <div key={i} className="group flex items-center gap-4">
-            <span className="text-muted-foreground/50 font-mono text-sm group-hover:text-primary transition-colors">
+            <span className="text-muted-foreground/80 font-mono text-sm group-hover:text-primary transition-colors">
               {String(i + 1).padStart(2, '0')}
             </span>
             <Input
               value={priority}
               onChange={(e: any) => updatePriority(i, e.target.value)}
               placeholder={`Priority ${i + 1}`}
-              className="border-0 border-b border-border/50 rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-primary px-0 text-xl font-light text-foreground placeholder:text-muted-foreground/30 transition-colors"
+              className="border-0 border-b border-border/50 rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-primary px-0 text-xl font-light text-foreground placeholder:text-muted-foreground/70 transition-colors"
             />
           </div>
         ))}
