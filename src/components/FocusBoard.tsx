@@ -70,7 +70,7 @@ export function FocusBoard() {
             </div>
           </div>
         ))}
-        <Button variant="ghost" className="w-full text-foreground/80 hover:text-primary font-medium" onClick={addPriority}>
+        <Button variant="ghost" className="w-full text-muted-foreground hover:text-primary" onClick={addPriority}>
           <Plus className="mr-2 h-4 w-4" /> Add Priority
         </Button>
       </CardContent>
