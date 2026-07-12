@@ -33,7 +33,7 @@
 
   .dark {
     /* Black Panther's Vibranium Theme */
-    --background: #0A0514; /* Darker purple, near black */
+    --background: #150821; /* More purple/pinkish accent */
     --foreground: #E0D4FF; /* Brighter foreground for contrast */
     --card: #1A0554;
     --card-foreground: #E0D4FF;
@@ -52,7 +52,7 @@
     --border: #3A1B8C;
     --input: #3A1B8C;
     --ring: #C4A8FF;
-    --app-bg: radial-gradient(circle at 50% 0%, #1A0554 0%, #0A0514 100%);
+    --app-bg: radial-gradient(circle at 50% 0%, #2A173B 0%, #150821 100%);
   }
 }
 

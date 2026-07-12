@@ -157,6 +157,22 @@ export function ProfileModal() {
                 className="mb-2"
               />
               <span className="text-xs text-muted-foreground">Drag and drop or paste an image here to upload</span>
+              <div className="flex justify-center mt-3">
+                <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('avatar-upload')?.click()}>
+                  Upload from Device
+                </Button>
+                <input 
+                  id="avatar-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      handleImageFile(e.target.files[0]);
+                    }
+                  }} 
+                />
+              </div>
             </div>
           </div>
 

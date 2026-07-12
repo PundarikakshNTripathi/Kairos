@@ -8,8 +8,7 @@
  * across devices.
  */
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { indexedDBStorage } from './storage';
+import { persist } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
 
 import type { User } from '@supabase/supabase-js';
@@ -102,7 +101,6 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'kairos-storage',
-      storage: createJSONStorage(() => indexedDBStorage),
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.setHasHydrated(true);
