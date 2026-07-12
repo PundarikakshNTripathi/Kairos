@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { LifeGrid } from './components/LifeGrid';
 import { FocusBoard } from './components/FocusBoard';
 import { JournalModal } from './components/JournalModal';
+import { ProfileModal } from './components/ProfileModal';
+import { Guide } from './components/Guide';
 import { useStore } from './store/useStore';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -20,6 +22,14 @@ export default function App() {
   const theme = useStore((state) => state.theme);
   const setTheme = useStore((state) => state.setTheme);
   const [dateInput, setDateInput] = useState('');
+  const [currentView, setCurrentView] = useState<'home' | 'guide'>('home');
+  const [showBirthdateModal, setShowBirthdateModal] = useState(false);
+
+  useEffect(() => {
+    if (hasHydrated && !birthDate) {
+      setShowBirthdateModal(true);
+    }
+  }, [hasHydrated, birthDate]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -45,6 +55,7 @@ export default function App() {
   const handleSaveBirthDate = () => {
     if (dateInput) {
       setBirthDate(dateInput);
+      setShowBirthdateModal(false);
     }
   };
 
@@ -53,8 +64,8 @@ export default function App() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col items-center pt-8 p-4 selection:bg-primary selection:text-primary-foreground transition-colors duration-500">
       
-      <Dialog open={!birthDate} onOpenChange={() => {}}>
-        <DialogContent className="max-w-sm" showCloseButton={false}>
+      <Dialog open={showBirthdateModal} onOpenChange={setShowBirthdateModal}>
+        <DialogContent className="max-w-sm">
           <DialogTitle>Welcome to Kairos</DialogTitle>
           <DialogDescription>
             Enter your date of birth to initialize your life grid.
@@ -77,9 +88,12 @@ export default function App() {
           <h1 className="text-2xl font-light tracking-widest uppercase">Kairos</h1>
         </div>
         <div className="flex items-center gap-4">
+          <Button variant="link" onClick={() => setCurrentView(currentView === 'home' ? 'guide' : 'home')} className="hidden sm:inline-flex text-muted-foreground hover:text-primary">
+            {currentView === 'home' ? 'Guide' : 'Home'}
+          </Button>
           <span className="text-sm font-mono text-muted-foreground/60 hidden sm:inline-block">Press Ctrl+K to Journal</span>
           <LoginButton />
-          <Button variant="outline" size="sm" onClick={() => { setDateInput(birthDate || ''); setBirthDate(null); }}>
+          <Button variant="outline" size="sm" onClick={() => { setDateInput(birthDate || ''); setShowBirthdateModal(true); }}>
             Edit Birthdate
           </Button>
           <Button variant="outline" size="icon" className="rounded-full bg-card" onClick={toggleTheme}>
@@ -88,15 +102,21 @@ export default function App() {
         </div>
       </header>
 
-      <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 items-start h-[80vh]">
-        <div className="h-full border border-border/50 rounded-2xl bg-card shadow-2xl overflow-hidden relative">
-          <LifeGrid />
+      {currentView === 'home' ? (
+        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 items-start h-[80vh]">
+          <div className="h-full border border-border/50 rounded-2xl bg-card shadow-2xl overflow-hidden relative">
+            <LifeGrid />
+          </div>
+          <div className="h-full border border-border/50 rounded-2xl bg-card shadow-2xl overflow-hidden">
+            <FocusBoard />
+          </div>
         </div>
-        <div className="h-full border border-border/50 rounded-2xl bg-card shadow-2xl overflow-hidden">
-          <FocusBoard />
-        </div>
-      </div>
+      ) : (
+        <Guide />
+      )}
+      
       <JournalModal />
+      <ProfileModal />
       <Button 
         className="md:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-2xl z-50 bg-primary text-primary-foreground flex items-center justify-center"
         onClick={() => useStore.getState().openJournal(format(new Date(), 'yyyy-MM-dd'))}

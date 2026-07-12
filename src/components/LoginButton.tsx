@@ -13,14 +13,26 @@ export function LoginButton() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
+  const setProfileOpen = useStore(state => state.setProfileOpen);
+  const profile = useStore(state => state.profile);
+
   // If Supabase wasn't configured, don't show the button at all
   if (!supabase) return null;
 
   if (user) {
+    const displayName = profile?.username || user.user_metadata?.user_name || user.user_metadata?.full_name || user.email;
     return (
-      <Button variant="ghost" size="sm" onClick={() => supabase!.auth.signOut()} className="text-xs text-muted-foreground">
-        Sign Out ({user.email})
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="sm" onClick={() => setProfileOpen(true)} className="text-xs text-muted-foreground flex items-center gap-2">
+          {profile?.avatar_url || user.user_metadata?.avatar_url ? (
+            <img src={profile?.avatar_url || user.user_metadata?.avatar_url} alt="Avatar" className="w-5 h-5 rounded-full" />
+          ) : null}
+          {displayName}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => supabase!.auth.signOut()} className="text-xs text-muted-foreground/50 hover:text-destructive">
+          Sign Out
+        </Button>
+      </div>
     );
   }
 

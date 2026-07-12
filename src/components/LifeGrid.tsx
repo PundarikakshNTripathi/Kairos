@@ -11,7 +11,7 @@ export function LifeGrid() {
   const [hoverInfo, setHoverInfo] = useState<{ x: number, y: number, dateStr: string, isFuture: boolean } | null>(null);
   const [cols, setCols] = useState(365);
 
-  const cellSize = 2;
+  const cellSize = 4;
   const gap = 1;
 
   useEffect(() => {

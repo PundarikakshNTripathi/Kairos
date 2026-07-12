@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/store/useStore';
-import { Plus, Download } from 'lucide-react';
+import { Plus, Download, X } from 'lucide-react';
 
 export function FocusBoard() {
   const priorities = useStore((state) => state.priorities);
@@ -17,6 +17,11 @@ export function FocusBoard() {
 
   const addPriority = () => {
     setPriorities([...priorities, '']);
+  };
+
+  const removePriority = (index: number) => {
+    const newPriorities = priorities.filter((_, i) => i !== index);
+    setPriorities(newPriorities);
   };
 
   const exportData = () => {
@@ -46,12 +51,23 @@ export function FocusBoard() {
             <span className="text-muted-foreground/80 font-mono text-sm group-hover:text-primary transition-colors">
               {String(i + 1).padStart(2, '0')}
             </span>
-            <Input
-              value={priority}
-              onChange={(e: any) => updatePriority(i, e.target.value)}
-              placeholder={`Priority ${i + 1}`}
-              className="border-0 border-b border-border/50 rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-primary px-0 text-xl font-light text-foreground placeholder:text-muted-foreground/70 transition-colors"
-            />
+            <div className="flex-1 relative">
+              <Input
+                value={priority}
+                onChange={(e: any) => updatePriority(i, e.target.value)}
+                placeholder={`Priority ${i + 1}`}
+                className="border-0 border-b border-border/50 rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-primary px-0 text-xl font-light text-foreground placeholder:text-muted-foreground transition-colors w-full pr-8"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground/50 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => removePriority(i)}
+                title="Delete Priority"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         ))}
         <Button variant="ghost" className="w-full text-muted-foreground hover:text-primary" onClick={addPriority}>

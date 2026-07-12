@@ -69,10 +69,11 @@ graph TD
 
 ## Features
 - **Temporal Canvas Grid:** ~32,872 boxes spanning 90 years natively rendered at 60fps with hover tooltips and direct-to-journal click access.
-- **Limitless Executive Focus:** Unbounded priority boarding.
+- **Limitless Executive Focus:** Unbounded priority boarding with instant deletion.
 - **Command Palette Journal:** Deeply integrated global `Ctrl+K` journaling on Desktop, and an adaptive Floating Action Button on Mobile.
-- **Accurate Hex Theming:** "Black Panther Vibranium" dark mode and "Barbie Doll Pinks" light mode.
-- **Passwordless Authentication:** Secure login via Email Magic Links or GitHub OAuth.
+- **Accurate Hex Theming:** "Black Panther Vibranium" dark mode and "Barbie Doll Pinks" light mode. Optimized high-contrast text.
+- **Passwordless Authentication & Profiles:** Secure login via Email Magic Links or GitHub/Google OAuth, with customizable usernames and avatars.
+- **Philosophy Guide:** Built-in manifesto detailing the core mechanics and reasoning behind Kairos.
 - **Hybrid Storage & Privacy:** Instant offline caching via IndexedDB, seamlessly synced to Supabase (secured by strict Row Level Security).
 - **Bulletproof Security:** Secured with Content-Security-Policy (CSP) headers and DOMPurify for absolute XSS immunity.
 - **PWA Ready:** Install natively to Windows, Mac, iOS, or Android without App Stores.

@@ -16,6 +16,7 @@ import type { User } from '@supabase/supabase-js';
 
 interface AppState {
   user: User | null;
+  profile: { username?: string, avatar_url?: string } | null;
   birthDate: string | null;
   theme: 'light' | 'dark';
   logs: Record<string, string>; // keyed by date string 'yyyy-MM-dd'
@@ -23,6 +24,8 @@ interface AppState {
   hasHydrated: boolean;
   
   setUser: (user: User | null) => void;
+  setProfile: (profile: { username?: string, avatar_url?: string } | null) => void;
+  fetchProfile: () => Promise<void>;
   setBirthDate: (date: string | null) => void;
   setTheme: (theme: 'light' | 'dark') => void;
   setLog: (dateKey: string, text: string) => void;
@@ -32,12 +35,15 @@ interface AppState {
   activeJournalDate: string | null;
   openJournal: (date?: string) => void;
   closeJournal: () => void;
+  isProfileOpen: boolean;
+  setProfileOpen: (open: boolean) => void;
 }
 
 export const useStore = create<AppState>()(
   persist(
     (set) => ({
       user: null,
+      profile: null,
       birthDate: null,
       theme: 'light',
       logs: {},
@@ -45,8 +51,26 @@ export const useStore = create<AppState>()(
       hasHydrated: false,
       isJournalOpen: false,
       activeJournalDate: null,
+      isProfileOpen: false,
       
-      setUser: (user) => set({ user }),
+      setUser: (user) => {
+        set({ user });
+        if (user) {
+          get().fetchProfile();
+        } else {
+          set({ profile: null });
+        }
+      },
+      setProfile: (profile) => set({ profile }),
+      setProfileOpen: (open) => set({ isProfileOpen: open }),
+      fetchProfile: async () => {
+        if (!supabase) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase.from('profiles').select('username, avatar_url').eq('id', user.id).single();
+          if (data) set({ profile: data });
+        }
+      },
       setTheme: (theme) => set({ theme }),
       setBirthDate: (date) => {
         set({ birthDate: date });

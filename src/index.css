@@ -19,7 +19,7 @@
     --secondary: #F18DBC;
     --secondary-foreground: #4A0A2D;
     --muted: #F18DBC; /* Softer background */
-    --muted-foreground: #99175E; /* Dark pink for contrast instead of white */
+    --muted-foreground: #6B0F3F; /* Much darker pink for placeholders/contrast */
     --accent: #F18DBC;
     --accent-foreground: #4A0A2D;
     --destructive: #E0218A;

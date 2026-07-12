@@ -74,7 +74,7 @@ export function JournalModal() {
 
   return (
     <Dialog open={isJournalOpen} onOpenChange={(open: boolean) => !open && closeJournal()}>
-      <DialogContent className={`${maximized ? '!max-w-[95vw] !w-[95vw] !h-[95vh]' : 'sm:max-w-4xl w-[90vw] h-[70vh]'} bg-background/90 backdrop-blur-3xl border-border/50 p-0 shadow-2xl transition-all duration-300 flex flex-col`}>
+      <DialogContent showCloseButton={false} className={`${maximized ? '!max-w-[95vw] !w-[95vw] !h-[95vh]' : 'sm:max-w-4xl w-[90vw] h-[70vh]'} bg-background/90 backdrop-blur-3xl border-border/50 p-0 shadow-2xl transition-all duration-300 flex flex-col`}>
         <DialogTitle className="sr-only">Daily Journal</DialogTitle>
         <div className="p-4 border-b border-border/30 flex justify-between items-center bg-muted/20">
           <span className="text-sm font-mono text-muted-foreground">Daily Journal // {dateToUse}</span>
@@ -86,6 +86,9 @@ export function JournalModal() {
             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleOpenNewTab}>
               <ExternalLink className="h-3 w-3" />
             </Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-destructive hover:text-destructive-foreground rounded-full" onClick={closeJournal}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x h-4 w-4"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </Button>
           </div>
         </div>
         <Textarea
@@ -94,7 +97,7 @@ export function JournalModal() {
           onKeyDown={handleKeyDown}
           onBlur={() => setLog(dateToUse, text)} 
           placeholder="Log your thoughts, milestones, or notes..."
-          className="flex-1 min-h-[300px] border-0 focus-visible:ring-0 resize-none bg-transparent text-lg font-light p-6 placeholder:text-muted-foreground/70 rounded-none"
+          className="flex-1 min-h-[300px] border-0 focus-visible:ring-0 resize-none bg-transparent text-lg font-light p-6 placeholder:text-muted-foreground rounded-none"
           autoFocus
         />
       </DialogContent>
