@@ -1,3 +1,10 @@
+/**
+ * Core Database & Authentication Services
+ * 
+ * This module initializes the Supabase client for remote data synchronization.
+ * It strictly relies on environment variables injected during the build process
+ * to establish secure connections with the managed PostgreSQL instance.
+ */
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;

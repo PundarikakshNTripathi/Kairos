@@ -1,3 +1,12 @@
+/**
+ * Global State Management & Hybrid Synchronization
+ * 
+ * Implements a unified data layer using Zustand. 
+ * State is eagerly persisted to IndexedDB (localforage) to ensure immediate 
+ * local responsiveness (Optimistic UI updates), and asynchronously synced 
+ * to the remote Supabase PostgreSQL database to ensure data persistence 
+ * across devices.
+ */
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { indexedDBStorage } from './storage';

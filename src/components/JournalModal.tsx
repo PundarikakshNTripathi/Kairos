@@ -1,3 +1,11 @@
+/**
+ * Journaling Interface & Data Presentation
+ * 
+ * A deeply integrated modal component handling the creation and visualization
+ * of daily logs. Security features include aggressive sanitization of user input 
+ * via DOMPurify to mitigate Cross-Site Scripting (XSS) vulnerabilities during 
+ * HTML export and DOM injection.
+ */
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
