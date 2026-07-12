@@ -101,7 +101,8 @@ export default function App() {
           <span className="text-sm font-mono text-muted-foreground/60 hidden sm:inline-block">Press Ctrl+K to Journal</span>
           <LoginButton />
           <Button variant="outline" size="sm" onClick={() => { setDateInput(birthDate || ''); setShowBirthdateModal(true); }}>
-            Edit Birthdate
+            <span className="hidden sm:inline">Edit Birthdate</span>
+            <span className="sm:hidden">Age</span>
           </Button>
           <Button variant="outline" size="icon" className="rounded-full bg-card" onClick={toggleTheme}>
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -127,11 +128,18 @@ export default function App() {
       <JournalModal />
       <ProfileModal />
       <Button 
-        className="md:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-2xl z-50 bg-primary text-primary-foreground flex items-center justify-center"
+        className="md:hidden fixed bottom-6 right-4 h-12 w-12 rounded-full shadow-2xl z-50 bg-primary text-primary-foreground flex items-center justify-center"
         onClick={() => useStore.getState().openJournal(format(new Date(), 'yyyy-MM-dd'))}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pen-tool"><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
       </Button>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-md border border-border/50 shadow-2xl rounded-full flex items-center px-2 py-1 gap-1 z-50">
+        <Button variant="ghost" size="sm" onClick={() => setCurrentView('home')} className={`rounded-full px-4 ${currentView === 'home' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>Home</Button>
+        <Button variant="ghost" size="sm" onClick={() => setCurrentView('calendar')} className={`rounded-full px-4 ${currentView === 'calendar' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>Logs</Button>
+        <Button variant="ghost" size="sm" onClick={() => setCurrentView('guide')} className={`rounded-full px-4 ${currentView === 'guide' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>Guide</Button>
+      </div>
     </div>
   );
 }

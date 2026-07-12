@@ -113,6 +113,7 @@ graph TD
 
 ## Features
 - **Temporal Canvas Grid:** Approximately 32,872 boxes spanning 90 years natively rendered via Canvas APIs at a strict 60fps, featuring mathematical coordinate mapping for instant hover tooltips and direct-to-journal click access.
+- **Historical Calendar View:** Dedicated visual calendar grid supporting mouse navigation and precise date search capabilities, allowing instant jumping to any past daily log.
 - **Limitless Executive Focus:** Unbounded priority boarding allowing immediate input and instantaneous deletion via optimistic state updates.
 - **Command Palette Journal:** Deeply integrated global shortcut (Ctrl+K) journaling on Desktop, and an adaptive Floating Action Button on Mobile interfaces.
 - **Accurate Hex Theming:** "Black Panther Vibranium" dark mode and "Barbie Doll Pinks" light mode. Custom engineered contrast adjustments ensure optimal legibility across varying ambient light conditions.

@@ -74,6 +74,13 @@ export function Guide() {
               Press <kbd className="font-mono bg-muted text-muted-foreground px-1 py-0.5 rounded text-xs">Ctrl</kbd> + <kbd className="font-mono bg-muted text-muted-foreground px-1 py-0.5 rounded text-xs">K</kbd> anywhere in the app to instantly open today's journal and dump your thoughts.
             </div>
           </li>
+          <li className="flex gap-4">
+            <div className="w-8 h-8 rounded bg-primary/10 text-primary flex items-center justify-center font-mono font-bold shrink-0">4</div>
+            <div>
+              <strong className="text-foreground block">Historical Calendar & Logs</strong>
+              Navigate to the Calendar view to see a visual timeline of your past entries. Search by exact dates, or click on any highlighted day to review or edit your historical notes.
+            </div>
+          </li>
         </ul>
       </div>
     </div>
