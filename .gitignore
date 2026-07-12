@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 .antigravity/
 .env
+
+# Socials and Strategy Docs
+socials.md
+personal_guide.md
+QnA.md
