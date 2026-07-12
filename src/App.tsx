@@ -1,56 +1,72 @@
-import React, { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { LifeGrid } from './components/LifeGrid';
 import { FocusBoard } from './components/FocusBoard';
-import { CommandPalette } from './components/CommandPalette';
+import { JournalModal } from './components/JournalModal';
 import { useStore } from './store/useStore';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
+import { Moon, Sun } from 'lucide-react';
 
-function App() {
+export default function App() {
   const hasHydrated = useStore((state) => state.hasHydrated);
   const birthDate = useStore((state) => state.birthDate);
   const setBirthDate = useStore((state) => state.setBirthDate);
+  const [dateInput, setDateInput] = useState('');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
-    // Temporary for scaffolding: if no birthdate is set after hydration, set one just for preview.
-    // In a real app we'd show an onboarding screen here.
-    if (hasHydrated && !birthDate) {
-      setBirthDate('1995-01-01');
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const handleSaveBirthDate = () => {
+    if (dateInput) {
+      setBirthDate(dateInput);
     }
-  }, [hasHydrated, birthDate, setBirthDate]);
+  };
 
   if (!hasHydrated) {
-    return null; // Prevent UI flickering during hydration
+    return null; 
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col dark">
-      {/* Header */}
-      <header className="flex justify-between items-center p-6 border-b border-border">
-        <h1 className="text-xl font-bold font-sans tracking-tight uppercase">Kairos</h1>
-        <div className="text-xs font-mono text-muted-foreground">
-          Ctrl+K to log
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col lg:flex-row">
-        {/* Left side: Life Grid */}
-        <div className="flex-1 border-r border-border p-6 overflow-auto bg-black">
-          <div className="mb-6 flex justify-between items-baseline">
-            <h2 className="text-sm font-mono tracking-widest text-muted-foreground uppercase">Life Grid</h2>
-            <span className="text-xs font-mono text-muted-foreground">90 Years</span>
+    <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 selection:bg-primary selection:text-primary-foreground transition-colors duration-500">
+      <Dialog open={!birthDate} onOpenChange={() => {}}>
+        <DialogContent className="max-w-sm" showCloseButton={false}>
+          <DialogTitle>Welcome to Kairos</DialogTitle>
+          <DialogDescription>
+            Enter your date of birth to initialize your life grid.
+          </DialogDescription>
+          <div className="flex gap-2 mt-4">
+            <Input 
+              type="date" 
+              value={dateInput} 
+              onChange={(e: any) => setDateInput(e.target.value)} 
+              max={format(new Date(), 'yyyy-MM-dd')}
+            />
+            <Button onClick={handleSaveBirthDate}>Start</Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Button variant="outline" size="icon" className="fixed top-4 right-4 z-50 rounded-full bg-card" onClick={toggleTheme}>
+        {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      </Button>
+
+      <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 items-start h-[80vh]">
+        <div className="h-full border border-border/50 rounded-2xl bg-card shadow-2xl overflow-hidden relative">
           <LifeGrid />
         </div>
-
-        {/* Right side: Focus Board */}
-        <div className="w-full lg:w-[400px] p-6 flex flex-col bg-[#050505]">
+        <div className="h-full border border-border/50 rounded-2xl bg-card shadow-2xl overflow-hidden">
           <FocusBoard />
         </div>
-      </main>
-
-      <CommandPalette />
+      </div>
+      <JournalModal />
     </div>
   );
 }
-
-export default App;

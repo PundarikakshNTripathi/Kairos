@@ -1,5 +1,5 @@
 import localforage from 'localforage';
-import { StateStorage } from 'zustand/middleware';
+import type { StateStorage } from 'zustand/middleware';
 
 localforage.config({
   name: 'kairos-db',

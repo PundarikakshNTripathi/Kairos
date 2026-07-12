@@ -2,48 +2,40 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { indexedDBStorage } from './storage';
 
-export interface LogEntry {
-  id: string;
-  text: string;
-  timestamp: number;
-}
-
 interface AppState {
   birthDate: string | null;
-  logs: Record<string, LogEntry[]>; // keyed by date string 'yyyy-MM-dd'
-  priorities: [string, string, string];
+  logs: Record<string, string>; // keyed by date string 'yyyy-MM-dd'
+  priorities: string[];
   hasHydrated: boolean;
   
   setBirthDate: (date: string) => void;
-  addLog: (dateKey: string, text: string) => void;
-  updatePriority: (index: 0 | 1 | 2, text: string) => void;
+  setLog: (dateKey: string, text: string) => void;
+  setPriorities: (priorities: string[]) => void;
   setHasHydrated: (state: boolean) => void;
+  isJournalOpen: boolean;
+  activeJournalDate: string | null;
+  openJournal: (date?: string) => void;
+  closeJournal: () => void;
 }
 
 export const useStore = create<AppState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       birthDate: null,
       logs: {},
       priorities: ['', '', ''],
       hasHydrated: false,
+      isJournalOpen: false,
+      activeJournalDate: null,
       
       setBirthDate: (date) => set({ birthDate: date }),
-      addLog: (dateKey, text) => set((state) => ({
-        logs: {
-          ...state.logs,
-          [dateKey]: [
-            ...(state.logs[dateKey] || []),
-            { id: crypto.randomUUID(), text, timestamp: Date.now() }
-          ]
-        }
+      setLog: (dateKey, text) => set((state) => ({
+        logs: { ...state.logs, [dateKey]: text }
       })),
-      updatePriority: (index, text) => set((state) => {
-        const newPriorities = [...state.priorities] as [string, string, string];
-        newPriorities[index] = text;
-        return { priorities: newPriorities };
-      }),
+      setPriorities: (priorities) => set({ priorities }),
       setHasHydrated: (state) => set({ hasHydrated: state }),
+      openJournal: (date) => set({ isJournalOpen: true, activeJournalDate: date || new Date().toISOString().split('T')[0] }),
+      closeJournal: () => set({ isJournalOpen: false, activeJournalDate: null }),
     }),
     {
       name: 'kairos-storage',
