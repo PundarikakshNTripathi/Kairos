@@ -31,7 +31,7 @@ export function FocusBoard() {
   };
 
   return (
-    <Card className="border-0 rounded-none shadow-none bg-transparent h-full flex flex-col justify-between">
+    <Card className="border-0 rounded-none shadow-none bg-transparent h-full flex flex-col">
       <CardHeader className="px-8 pt-8">
         <CardTitle className="text-2xl font-light tracking-widest text-primary flex justify-between items-center">
           <span>EXECUTIVE FOCUS</span>
