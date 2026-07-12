@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { User, Upload, Loader2 } from 'lucide-react';
 
 export function ProfileModal() {
   const isProfileOpen = useStore(state => state.isProfileOpen);
@@ -15,8 +16,8 @@ export function ProfileModal() {
   const [username, setUsername] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [message, setMessage] = useState('');
-  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     if (isProfileOpen) {
@@ -26,8 +27,8 @@ export function ProfileModal() {
     }
   }, [isProfileOpen, profile, user]);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!user || !supabase) return;
     
     setLoading(true);
@@ -58,6 +59,9 @@ export function ProfileModal() {
       return;
     }
 
+    setUploadingImage(true);
+    setMessage('Processing image...');
+
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
@@ -83,9 +87,12 @@ export function ProfileModal() {
       ctx?.drawImage(img, 0, 0, width, height);
       
       canvas.toBlob(async (blob) => {
-        if (!blob || !user || !supabase) return;
-        setLoading(true);
-        setMessage('Uploading image...');
+        if (!blob || !user || !supabase) {
+          setUploadingImage(false);
+          return;
+        }
+        
+        setMessage('Uploading to secure cloud...');
         
         const fileName = `${user.id}-${Date.now()}.jpg`;
         const { error: uploadError } = await supabase.storage
@@ -93,8 +100,8 @@ export function ProfileModal() {
           .upload(fileName, blob, { contentType: 'image/jpeg', upsert: true });
           
         if (uploadError) {
-          setMessage('Error uploading image. Is your storage bucket configured?');
-          setLoading(false);
+          setMessage('Upload error. Ensure your bucket is configured.');
+          setUploadingImage(false);
           return;
         }
         
@@ -103,16 +110,31 @@ export function ProfileModal() {
           .getPublicUrl(fileName);
           
         setAvatarUrl(publicUrl);
-        setMessage('Image uploaded successfully');
-        setLoading(false);
+        
+        // Auto-save the new url to the profile table
+        const updates = {
+          id: user.id,
+          username,
+          avatar_url: publicUrl,
+        };
+        await supabase.from('profiles').upsert(updates);
+        setProfile({ username, avatar_url: publicUrl });
+
+        setMessage('Avatar updated successfully!');
+        setUploadingImage(false);
       }, 'image/jpeg', 0.8);
     };
+    
+    img.onerror = () => {
+      setMessage('Failed to process image format.');
+      setUploadingImage(false);
+    };
+    
     img.src = URL.createObjectURL(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleImageFile(e.dataTransfer.files[0]);
     }
@@ -126,66 +148,68 @@ export function ProfileModal() {
 
   return (
     <Dialog open={isProfileOpen} onOpenChange={setProfileOpen}>
-      <DialogContent className="max-w-sm" onPaste={handlePaste}>
+      <DialogContent className="max-w-sm" onPaste={handlePaste} onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
         <DialogTitle>Edit Profile</DialogTitle>
         <DialogDescription>
           Update your public profile details.
         </DialogDescription>
         
-        <form onSubmit={handleSave} className="flex flex-col gap-4 mt-4">
-          <div className="flex flex-col gap-2">
-            <label className="text-xs text-muted-foreground uppercase tracking-widest">Username</label>
-            <Input 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Your username"
-            />
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            <label className="text-xs text-muted-foreground uppercase tracking-widest">Avatar URL</label>
-            <div 
-              className={`border-2 border-dashed rounded-md p-4 text-center transition-colors ${isDragging ? 'border-primary bg-primary/5' : 'border-border/50'}`}
-              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleDrop}
-            >
-              <Input 
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                placeholder="https://... or Paste/Drop image"
-                className="mb-2"
-              />
-              <span className="text-xs text-muted-foreground">Drag and drop or paste an image here to upload</span>
-              <div className="flex justify-center mt-3">
-                <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('avatar-upload')?.click()}>
-                  Upload from Device
-                </Button>
-                <input 
-                  id="avatar-upload" 
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      handleImageFile(e.target.files[0]);
-                    }
-                  }} 
-                />
-              </div>
+        <div className="flex flex-col items-center gap-4 mt-4">
+          {/* Avatar Display */}
+          <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
+            <div className="w-24 h-24 rounded-full border-2 border-border/50 overflow-hidden bg-muted flex items-center justify-center shadow-lg transition-transform hover:scale-105">
+              {uploadingImage ? (
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              ) : avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-10 h-10 text-muted-foreground/50" />
+              )}
+              
+              {!uploadingImage && (
+                <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Upload className="w-6 h-6 text-foreground" />
+                </div>
+              )}
             </div>
           </div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest text-center mt-[-8px]">
+            Click, drag, or paste image
+          </p>
 
-          {message && (
-            <p className={`text-xs text-center ${message.includes('Error') ? 'text-destructive' : 'text-primary'}`}>
-              {message}
-            </p>
-          )}
+          <input 
+            id="avatar-upload" 
+            type="file" 
+            accept="image/*" 
+            className="hidden" 
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) {
+                handleImageFile(e.target.files[0]);
+              }
+            }} 
+          />
 
-          <Button type="submit" disabled={loading} className="mt-2">
-            {loading ? 'Saving...' : 'Save Profile'}
-          </Button>
-        </form>
+          <form onSubmit={handleSave} className="flex flex-col gap-4 w-full mt-2">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs text-muted-foreground uppercase tracking-widest">Username</label>
+              <Input 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Your username"
+              />
+            </div>
+            
+            {message && (
+              <p className={`text-xs text-center ${message.includes('Error') || message.includes('Failed') ? 'text-destructive' : 'text-primary'}`}>
+                {message}
+              </p>
+            )}
+
+            <Button type="submit" disabled={loading || uploadingImage} className="mt-2">
+              {loading ? 'Saving...' : 'Save Profile'}
+            </Button>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
