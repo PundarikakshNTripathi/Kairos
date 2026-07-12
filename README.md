@@ -7,6 +7,7 @@ A deeply interactive, locally persistent Executive Focus & Life Tracker designed
 ![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Zustand](https://img.shields.io/badge/zustand-%2320232a.svg?style=for-the-badge&logo=react&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 
 ## Table of Contents
 - [Introduction and Motivation](#introduction-and-motivation)
@@ -17,6 +18,7 @@ A deeply interactive, locally persistent Executive Focus & Life Tracker designed
 - [Tech Stack Used](#tech-stack-used)
 - [Features](#features)
 - [Setup, Execution, and Usage](#setup-execution-and-usage)
+- [Deployment Strategy](#deployment-strategy)
 - [Results, Benchmarks and Evaluation](#results-benchmarks-and-evaluation)
 - [Current Status, Limitation and Future Work](#current-status-limitation-and-future-work)
 - [Troubleshooting and Debugging](#troubleshooting-and-debugging)
@@ -47,6 +49,9 @@ graph TD
 
 ## Repository Structure
 ```
+├── .github/
+│   └── workflows/
+│       └── deploy.yml            # Automated GitHub Actions CI/CD for GitHub Pages
 ├── public/               # Static assets (Favicons, manifest)
 ├── src/
 │   ├── components/       # UI (LifeGrid, FocusBoard, JournalModal)
@@ -54,34 +59,65 @@ graph TD
 │   ├── store/            # Zustand state & IDB adapter
 │   ├── App.tsx           # Layout & Hooks
 │   └── index.css         # Theming variables
-├── Dockerfile            # Container config
+├── Dockerfile            # Multi-stage Docker build for Nginx serving
+├── docker-compose.yml    # Docker compose configuration for easy orchestration
+├── .dockerignore         # Exclusions for Docker build context
 ├── vite.config.ts        # PWA & Bundler config
 └── package.json
 ```
 
 ## Tech Stack Used
 - **Core Framework:** React 18, TypeScript, Vite
-- **Styling:** Tailwind CSS v3, Radix UI (shadcn/ui), oklch themes
+- **Styling:** Tailwind CSS v3, Radix UI (shadcn/ui), exact Hex color precision matching "Black Panther" and "Barbie" palettes
 - **State & Storage:** Zustand, localforage (IndexedDB)
 - **Time Math:** date-fns
 - **PWA:** vite-plugin-pwa
+- **DevOps:** Docker, GitHub Actions, Nginx
 
 ## Features
-- **Temporal Canvas Grid:** ~32,872 boxes spanning 90 years natively rendered at 60fps with hover tooltips and direct-to-journal click access.
+- **Temporal Canvas Grid:** ~32,872 boxes spanning 90 years natively rendered at 60fps with responsive window wrapping.
 - **Limitless Executive Focus:** Unbounded priority boarding.
-- **Command Palette Journal:** Deeply integrated global `Ctrl+K` journaling with full-screen maximization.
+- **Command Palette Journal:** Deeply integrated global `Ctrl+K` journaling with full-screen wide-mode maximization.
 - **Accurate Hex Theming:** "Black Panther Vibranium" dark mode and "Barbie Doll Pinks" light mode.
 - **Zero-Cloud Local Storage:** All data stored safely in IndexedDB with 1-click JSON backup downloading.
 - **PWA Ready:** Install natively to Windows, Mac, iOS, or Android without App Stores.
 
 ## Setup, Execution, and Usage
-### Local Setup
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn
+
+### Initialization
 ```bash
 npm ci
 npm run dev
 ```
+
 ### PWA Usage
 Visit the deployed URL and click the "Install" icon in your browser's address bar to install Kairos as a standalone desktop application.
+
+## Deployment Strategy
+Since Kairos is a purely client-side application bundled by Vite, it results in standard static files (`index.html`, CSS, JS). This allows for multiple friction-free deployment methodologies.
+
+### 1. Docker Containerization
+Kairos is equipped with a multi-stage `Dockerfile` and a `docker-compose.yml` configuration for instant containerization. This isolates the runtime environment, providing an identical setup across local and production machines.
+- **To build and run locally via Docker:**
+  ```bash
+  docker-compose up --build -d
+  ```
+  The Nginx web server will host the static bundle, accessible at `http://localhost:8080`.
+
+### 2. GitHub Pages (Automated CI/CD)
+The repository contains a `.github/workflows/deploy.yml` file designed to automate deployments directly to GitHub Pages using GitHub Actions.
+- In `vite.config.ts`, the `base` path is dynamically mapped via `process.env.GITHUB_REPOSITORY`.
+- **To deploy:** 
+  1. Navigate to your repository **Settings > Pages**.
+  2. Under "Build and deployment", set the source to **GitHub Actions**.
+  3. Pushing any code to the `main` branch will automatically trigger the workflow, build the artifact, and host it on your `github.io` domain.
+
+### 3. Vercel / Netlify
+You can deploy the `dist/` folder to any static hosting provider.
+- Connect your GitHub repository. The platform will automatically detect Vite and run `npm run build`, deploying the resulting `dist/` folder.
 
 ## Results, Benchmarks and Evaluation
 - **Canvas Rendering:** < 10ms for 32,872 distinct paths.
