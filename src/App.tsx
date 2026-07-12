@@ -4,6 +4,7 @@ import { FocusBoard } from './components/FocusBoard';
 import { JournalModal } from './components/JournalModal';
 import { ProfileModal } from './components/ProfileModal';
 import { Guide } from './components/Guide';
+import { CalendarView } from './components/CalendarView';
 import { useStore } from './store/useStore';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -22,7 +23,7 @@ export default function App() {
   const theme = useStore((state) => state.theme);
   const setTheme = useStore((state) => state.setTheme);
   const [dateInput, setDateInput] = useState('');
-  const [currentView, setCurrentView] = useState<'home' | 'guide'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'guide' | 'calendar'>('home');
   const [showBirthdateModal, setShowBirthdateModal] = useState(false);
 
   useEffect(() => {
@@ -88,8 +89,14 @@ export default function App() {
           <h1 className="text-2xl font-light tracking-widest uppercase">Kairos</h1>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="link" onClick={() => setCurrentView(currentView === 'home' ? 'guide' : 'home')} className="hidden sm:inline-flex text-muted-foreground hover:text-primary">
-            {currentView === 'home' ? 'Guide' : 'Home'}
+          <Button variant="link" onClick={() => setCurrentView('home')} className={`hidden sm:inline-flex ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+            Home
+          </Button>
+          <Button variant="link" onClick={() => setCurrentView('calendar')} className={`hidden sm:inline-flex ${currentView === 'calendar' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+            Calendar
+          </Button>
+          <Button variant="link" onClick={() => setCurrentView('guide')} className={`hidden sm:inline-flex ${currentView === 'guide' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+            Guide
           </Button>
           <span className="text-sm font-mono text-muted-foreground/60 hidden sm:inline-block">Press Ctrl+K to Journal</span>
           <LoginButton />
@@ -111,6 +118,8 @@ export default function App() {
             <FocusBoard />
           </div>
         </div>
+      ) : currentView === 'calendar' ? (
+        <CalendarView />
       ) : (
         <Guide />
       )}
