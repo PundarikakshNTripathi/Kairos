@@ -5,6 +5,7 @@ import { useStore } from '@/store/useStore';
 import { format } from 'date-fns';
 import { Maximize2, Minimize2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import DOMPurify from 'dompurify';
 
 export function JournalModal() {
   const isJournalOpen = useStore((state) => state.isJournalOpen);
@@ -56,7 +57,7 @@ export function JournalModal() {
               body { font-family: monospace; background: #000; color: #fff; padding: 2rem; white-space: pre-wrap; font-size: 16px; }
             </style>
           </head>
-          <body>${text || 'No entry for this day.'}</body>
+          <body>${DOMPurify.sanitize(text) || 'No entry for this day.'}</body>
         </html>
       `);
       newWindow.document.close();
