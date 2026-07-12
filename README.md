@@ -7,7 +7,6 @@ A deeply interactive, locally persistent Executive Focus & Life Tracker designed
 ![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![Zustand](https://img.shields.io/badge/zustand-%2320232a.svg?style=for-the-badge&logo=react&logoColor=white)
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 
 ## Table of Contents
 - [Introduction and Motivation](#introduction-and-motivation)
@@ -18,7 +17,6 @@ A deeply interactive, locally persistent Executive Focus & Life Tracker designed
 - [Tech Stack Used](#tech-stack-used)
 - [Features](#features)
 - [Setup, Execution, and Usage](#setup-execution-and-usage)
-- [Deployment Strategy](#deployment-strategy)
 - [Results, Benchmarks and Evaluation](#results-benchmarks-and-evaluation)
 - [Current Status, Limitation and Future Work](#current-status-limitation-and-future-work)
 - [Troubleshooting and Debugging](#troubleshooting-and-debugging)
@@ -30,16 +28,17 @@ A deeply interactive, locally persistent Executive Focus & Life Tracker designed
 Kairos (meaning "the right, critical, or opportune moment") was built to strip away the bloated features of modern productivity apps. It enforces a strict, visually commanding interface that contextualizes your daily tasks against the sheer scale of your entire lifespan. 
 
 ## Layman Explanation
-Imagine seeing your entire 90-year lifespan visualized as a grid of tiny boxes. Each box is a day. You can click on any box to journal your thoughts. Alongside this grid is a limitless "Executive Focus" list where you declare your absolute top priorities. The app remembers everything securely on your device, requiring no account, no login, and no cloud storage fees.
+Imagine seeing your entire 90-year lifespan visualized as a grid of tiny boxes. Each box is a day. You can click on any box to journal your thoughts. Alongside this grid is a limitless "Executive Focus" list where you declare your absolute top priorities. The app is incredibly fast, syncing seamlessly across all your devices securely without costing a dime in infrastructure.
 
 ## Deep Technical Approach
-Kairos is a completely client-side SPA. State persistence is managed through `localforage` (IndexedDB) wrapped seamlessly into a `Zustand` store. This guarantees immediate zero-flicker hydration on load. The 32,872 grid boxes for the 90-year matrix are rendered using raw HTML5 `<canvas>` rather than DOM nodes to ensure strict 60fps rendering, with dynamic Math calculations mapping mouse coordinates to precise dates using `date-fns` for timezone safety.
+Kairos is a blazingly fast SPA relying on a hybrid sync architecture. State persistence relies heavily on Optimistic UI principles: changes are written immediately to `localforage` (IndexedDB) wrapped seamlessly into a `Zustand` store for zero-flicker hydration, and then asynchronously synced to a Supabase (PostgreSQL) backend. The 32,872 grid boxes for the 90-year matrix are rendered using raw HTML5 `<canvas>` rather than DOM nodes to ensure strict 60fps rendering.
 
 ## System Architecture
 ```mermaid
 graph TD
     A[User Interface - React] -->|State reads/writes| B(Zustand Store)
-    B -->|Persist Middleware| C[localforage Adapter]
+    B -->|Optimistic UI - Fast| C[localforage Adapter]
+    B -->|Async Background Sync| G[Supabase Postgres]
     C -->|Async Storage| D[(IndexedDB)]
     
     A --> E[Canvas Matrix]
@@ -49,9 +48,6 @@ graph TD
 
 ## Repository Structure
 ```
-├── .github/
-│   └── workflows/
-│       └── deploy.yml            # Automated GitHub Actions CI/CD for GitHub Pages
 ├── public/               # Static assets (Favicons, manifest)
 ├── src/
 │   ├── components/       # UI (LifeGrid, FocusBoard, JournalModal)
@@ -59,65 +55,45 @@ graph TD
 │   ├── store/            # Zustand state & IDB adapter
 │   ├── App.tsx           # Layout & Hooks
 │   └── index.css         # Theming variables
-├── Dockerfile            # Multi-stage Docker build for Nginx serving
-├── docker-compose.yml    # Docker compose configuration for easy orchestration
-├── .dockerignore         # Exclusions for Docker build context
+├── Dockerfile            # Container config
 ├── vite.config.ts        # PWA & Bundler config
 └── package.json
 ```
 
 ## Tech Stack Used
 - **Core Framework:** React 18, TypeScript, Vite
-- **Styling:** Tailwind CSS v3, Radix UI (shadcn/ui), exact Hex color precision matching "Black Panther" and "Barbie" palettes
-- **State & Storage:** Zustand, localforage (IndexedDB)
+- **Styling:** Tailwind CSS v3, Radix UI (shadcn/ui), oklch themes
+- **State & Sync:** Zustand, localforage (IndexedDB), Supabase (PostgreSQL + Auth)
 - **Time Math:** date-fns
 - **PWA:** vite-plugin-pwa
-- **DevOps:** Docker, GitHub Actions, Nginx
 
 ## Features
-- **Temporal Canvas Grid:** ~32,872 boxes spanning 90 years natively rendered at 60fps with responsive window wrapping.
+- **Temporal Canvas Grid:** ~32,872 boxes spanning 90 years natively rendered at 60fps with hover tooltips and direct-to-journal click access.
 - **Limitless Executive Focus:** Unbounded priority boarding.
-- **Command Palette Journal:** Deeply integrated global `Ctrl+K` journaling with full-screen wide-mode maximization.
+- **Command Palette Journal:** Deeply integrated global `Ctrl+K` journaling on Desktop, and an adaptive Floating Action Button on Mobile.
 - **Accurate Hex Theming:** "Black Panther Vibranium" dark mode and "Barbie Doll Pinks" light mode.
-- **Zero-Cloud Local Storage:** All data stored safely in IndexedDB with 1-click JSON backup downloading.
+- **Hybrid Storage & Privacy:** Instant offline caching via IndexedDB, synced to Supabase secured by Row Level Security (RLS).
+- **Bulletproof Security:** Secured with Content-Security-Policy (CSP) headers and DOMPurify for absolute XSS immunity.
 - **PWA Ready:** Install natively to Windows, Mac, iOS, or Android without App Stores.
 
 ## Setup, Execution, and Usage
-### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn
-
-### Initialization
+### Local Setup
+Create a `.env` file at the root containing your Supabase keys:
+```env
+VITE_SUPABASE_URL=your_project_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
+Then run:
 ```bash
 npm ci
 npm run dev
 ```
 
+### Deployment (Vercel)
+Kairos is natively configured to deploy effortlessly on Vercel. Simply import the repository in Vercel, inject the `VITE_SUPABASE_*` environment variables in the project settings, and Vercel will handle the CI/CD pipeline on every push to `main`.
+
 ### PWA Usage
-Visit the deployed URL and click the "Install" icon in your browser's address bar to install Kairos as a standalone desktop application.
-
-## Deployment Strategy
-Since Kairos is a purely client-side application bundled by Vite, it results in standard static files (`index.html`, CSS, JS). This allows for multiple friction-free deployment methodologies.
-
-### 1. Docker Containerization
-Kairos is equipped with a multi-stage `Dockerfile` and a `docker-compose.yml` configuration for instant containerization. This isolates the runtime environment, providing an identical setup across local and production machines.
-- **To build and run locally via Docker:**
-  ```bash
-  docker-compose up --build -d
-  ```
-  The Nginx web server will host the static bundle, accessible at `http://localhost:8080`.
-
-### 2. GitHub Pages (Automated CI/CD)
-The repository contains a `.github/workflows/deploy.yml` file designed to automate deployments directly to GitHub Pages using GitHub Actions.
-- In `vite.config.ts`, the `base` path is dynamically mapped via `process.env.GITHUB_REPOSITORY`.
-- **To deploy:** 
-  1. Navigate to your repository **Settings > Pages**.
-  2. Under "Build and deployment", set the source to **GitHub Actions**.
-  3. Pushing any code to the `main` branch will automatically trigger the workflow, build the artifact, and host it on your `github.io` domain.
-
-### 3. Vercel / Netlify
-You can deploy the `dist/` folder to any static hosting provider.
-- Connect your GitHub repository. The platform will automatically detect Vite and run `npm run build`, deploying the resulting `dist/` folder.
+Visit the deployed URL and click the "Install" icon in your browser's address bar to install Kairos as a standalone desktop or mobile application.
 
 ## Results, Benchmarks and Evaluation
 - **Canvas Rendering:** < 10ms for 32,872 distinct paths.
@@ -125,11 +101,11 @@ You can deploy the `dist/` folder to any static hosting provider.
 - **Lighthouse:** 100/100 across Performance, Accessibility, Best Practices, and SEO.
 
 ## Current Status, Limitation and Future Work
-**Status:** Stable V1. 
-**Limitations:** Because data is bound to the browser's IndexedDB, clearing browser site data purges the journal. 
+**Status:** Stable V2. 
+**Limitations:** Initial sync may take a second upon logging into a new device.
 **Future Work:** 
-- Implement JSON data importing/restoration.
-- Cross-device sync via WebRTC peer-to-peer (avoiding cloud databases).
+- Implement end-to-end (E2E) encryption for journal payloads.
+- Deep integration with GitHub contributions graph.
 
 ## Troubleshooting and Debugging
 - **Data missing?** Ensure you haven't cleared your browser cache.
