@@ -29,7 +29,10 @@ export function LoginButton() {
     setLoading(true);
     setMessage('');
     
-    const { error } = await supabase!.auth.signInWithOtp({ email });
+    const { error } = await supabase!.auth.signInWithOtp({ 
+      email,
+      options: { emailRedirectTo: window.location.origin }
+    });
     if (error) {
       setMessage(error.message);
     } else {
@@ -55,14 +58,20 @@ export function LoginButton() {
             <Button 
               variant="outline" 
               className="w-full flex gap-2 items-center" 
-              onClick={() => supabase!.auth.signInWithOAuth({ provider: 'github' })}
+              onClick={() => supabase!.auth.signInWithOAuth({ 
+                provider: 'github',
+                options: { redirectTo: window.location.origin }
+              })}
             >
               Continue with GitHub
             </Button>
             <Button 
               variant="outline" 
               className="w-full flex gap-2 items-center" 
-              onClick={() => supabase!.auth.signInWithOAuth({ provider: 'google' })}
+              onClick={() => supabase!.auth.signInWithOAuth({ 
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+              })}
             >
               Continue with Google
             </Button>
