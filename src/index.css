@@ -7,50 +7,58 @@
 
 @layer base {
   :root {
-    --background: oklch(0.97 0.02 340);
-    --foreground: oklch(0.2 0.05 340);
+    /* Rich Light Pink Theme */
+    --background: oklch(0.98 0.01 340);
+    --foreground: oklch(0.3 0.05 340);
     --card: oklch(0.99 0.01 340);
-    --card-foreground: oklch(0.2 0.05 340);
+    --card-foreground: oklch(0.3 0.05 340);
     --popover: oklch(0.99 0.01 340);
-    --popover-foreground: oklch(0.2 0.05 340);
-    --primary: oklch(0.7 0.1 300);
+    --popover-foreground: oklch(0.3 0.05 340);
+    --primary: oklch(0.65 0.15 320);
     --primary-foreground: oklch(0.98 0 0);
-    --secondary: oklch(0.92 0.04 320);
-    --secondary-foreground: oklch(0.3 0.1 320);
-    --muted: oklch(0.95 0.02 340);
+    --secondary: oklch(0.95 0.03 330);
+    --secondary-foreground: oklch(0.4 0.1 330);
+    --muted: oklch(0.94 0.02 340);
     --muted-foreground: oklch(0.5 0.05 340);
-    --accent: oklch(0.85 0.06 310);
-    --accent-foreground: oklch(0.2 0.05 310);
-    --destructive: oklch(0.6 0.2 20);
-    --destructive-foreground: oklch(0.98 0 0);
+    --accent: oklch(0.85 0.08 330);
+    --accent-foreground: oklch(0.3 0.08 330);
     --border: oklch(0.9 0.03 340);
     --input: oklch(0.9 0.03 340);
-    --ring: oklch(0.7 0.1 300);
+    --ring: oklch(0.65 0.15 320);
     --radius: 0.5rem;
+    --app-bg: radial-gradient(circle at 50% 0%, oklch(0.99 0.03 340) 0%, oklch(0.96 0.01 340) 100%);
   }
 
   .dark {
-    --background: oklch(0.05 0 0);
+    /* Rich Dark Purple Theme */
+    --background: oklch(0.08 0.01 290);
     --foreground: oklch(0.95 0 0);
-    --card: oklch(0.1 0.01 290);
+    --card: oklch(0.12 0.02 290);
     --card-foreground: oklch(0.95 0 0);
-    --popover: oklch(0.08 0.01 290);
+    --popover: oklch(0.1 0.02 290);
     --popover-foreground: oklch(0.95 0 0);
-    --primary: oklch(0.6 0.2 290);
+    --primary: oklch(0.6 0.25 290);
     --primary-foreground: oklch(0.98 0 0);
     --secondary: oklch(0.2 0.05 290);
-    --secondary-foreground: oklch(0.98 0 0);
-    --muted: oklch(0.15 0.02 290);
-    --muted-foreground: oklch(0.7 0.05 290);
-    --accent: oklch(0.25 0.1 290);
+    --secondary-foreground: oklch(0.95 0 0);
+    --muted: oklch(0.15 0.03 290);
+    --muted-foreground: oklch(0.7 0.1 290);
+    --accent: oklch(0.3 0.15 290);
     --accent-foreground: oklch(0.98 0 0);
-    --destructive: oklch(0.5 0.2 20);
-    --destructive-foreground: oklch(0.98 0 0);
-    --border: oklch(0.2 0.05 290);
-    --input: oklch(0.2 0.05 290);
-    --ring: oklch(0.6 0.2 290);
+    --border: oklch(0.25 0.08 290);
+    --input: oklch(0.25 0.08 290);
+    --ring: oklch(0.6 0.25 290);
+    --app-bg: radial-gradient(circle at 50% 0%, oklch(0.15 0.05 290) 0%, oklch(0.05 0.01 290) 100%);
   }
-  .theme {
+}
+
+@layer base {
+  body {
+    background: var(--app-bg);
+    background-attachment: fixed;
+    color: var(--foreground);
+    @apply antialiased min-h-screen;
+  }  .theme {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
   }

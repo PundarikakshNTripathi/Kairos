@@ -65,7 +65,7 @@ export function JournalModal() {
 
   return (
     <Dialog open={isJournalOpen} onOpenChange={(open: boolean) => !open && closeJournal()}>
-      <DialogContent className={`${maximized ? 'max-w-[95vw] h-[95vh]' : 'max-w-2xl'} bg-background/90 backdrop-blur-3xl border-border/50 p-0 shadow-2xl transition-all duration-300 flex flex-col`}>
+      <DialogContent className={`${maximized ? 'max-w-[95vw] w-[95vw] h-[95vh]' : 'max-w-2xl'} bg-background/90 backdrop-blur-3xl border-border/50 p-0 shadow-2xl transition-all duration-300 flex flex-col`}>
         <DialogTitle className="sr-only">Daily Journal</DialogTitle>
         <div className="p-4 border-b border-border/30 flex justify-between items-center bg-muted/20">
           <span className="text-sm font-mono text-muted-foreground">Daily Journal // {dateToUse}</span>

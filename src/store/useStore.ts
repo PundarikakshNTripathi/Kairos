@@ -8,7 +8,7 @@ interface AppState {
   priorities: string[];
   hasHydrated: boolean;
   
-  setBirthDate: (date: string) => void;
+  setBirthDate: (date: string | null) => void;
   setLog: (dateKey: string, text: string) => void;
   setPriorities: (priorities: string[]) => void;
   setHasHydrated: (state: boolean) => void;
