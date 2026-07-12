@@ -12,12 +12,12 @@ export function LifeGrid() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const totalDays = 90 * 365; // ~32,850
+    const totalDays = 32872; // ~90 years
     const daysLived = getDaysLived(birthDate);
 
     const dpr = window.devicePixelRatio || 1;
     const cols = 365;
-    const rows = 90;
+    const rows = Math.ceil(totalDays / cols);
     const cellSize = 2;
     const gap = 1;
     const width = cols * (cellSize + gap);
@@ -31,28 +31,37 @@ export function LifeGrid() {
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, width, height);
 
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const index = r * cols + c;
-        const x = c * (cellSize + gap);
-        const y = r * (cellSize + gap);
-        
-        if (index < daysLived) {
-          ctx.fillStyle = '#3f3f46'; // zinc-700
-          ctx.fillRect(x, y, cellSize, cellSize);
-        } else if (index === daysLived) {
-          ctx.fillStyle = '#ffffff'; // white
-          ctx.fillRect(x, y, cellSize, cellSize);
-        } else if (index < totalDays) {
-          ctx.fillStyle = '#18181b'; // zinc-900
-          ctx.fillRect(x, y, cellSize, cellSize);
-        }
-      }
+    // 1. Elapsed Days (Muted Dark Gray)
+    ctx.beginPath();
+    for (let index = 0; index < daysLived; index++) {
+      const r = Math.floor(index / cols);
+      const c = index % cols;
+      ctx.rect(c * (cellSize + gap), r * (cellSize + gap), cellSize, cellSize);
+    }
+    ctx.fillStyle = '#3f3f46'; // zinc-700
+    ctx.fill();
+
+    // 2. Future Days (Single pixel dot / subtle outline)
+    ctx.beginPath();
+    for (let index = daysLived + 1; index < totalDays; index++) {
+      const r = Math.floor(index / cols);
+      const c = index % cols;
+      ctx.rect(c * (cellSize + gap), r * (cellSize + gap), 1, 1);
+    }
+    ctx.fillStyle = '#27272a'; // zinc-800
+    ctx.fill();
+
+    // 3. Current Day Highlight (Stark Red)
+    if (daysLived >= 0 && daysLived < totalDays) {
+      const r = Math.floor(daysLived / cols);
+      const c = daysLived % cols;
+      ctx.fillStyle = '#ef4444'; // red-500
+      ctx.fillRect(c * (cellSize + gap), r * (cellSize + gap), cellSize, cellSize);
     }
   }, [birthDate]);
 
   return (
-    <div className="flex justify-center p-4">
+    <div className="flex justify-center py-4">
       <canvas ref={canvasRef} className="block" />
     </div>
   );
