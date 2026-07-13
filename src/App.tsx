@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Menu, X } from 'lucide-react';
 
 import { LoginButton } from './components/LoginButton';
 import { supabase } from './lib/supabase';
@@ -25,6 +25,7 @@ export default function App() {
   const [dateInput, setDateInput] = useState('');
   const [currentView, setCurrentView] = useState<'home' | 'guide' | 'calendar'>('home');
   const [showBirthdateModal, setShowBirthdateModal] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (hasHydrated && !birthDate) {
@@ -76,6 +77,7 @@ export default function App() {
               type="date" 
               value={dateInput} 
               onChange={(e: any) => setDateInput(e.target.value)} 
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBirthDate(); }}
               max={format(new Date(), 'yyyy-MM-dd')}
             />
             <Button onClick={handleSaveBirthDate}>Start</Button>
@@ -89,26 +91,48 @@ export default function App() {
           <h1 className="text-2xl font-light tracking-widest uppercase">Kairos</h1>
         </div>
         <div className="flex items-center gap-4">
-          <Button variant="link" onClick={() => setCurrentView('home')} className={`hidden sm:inline-flex ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
-            Home
-          </Button>
-          <Button variant="link" onClick={() => setCurrentView('calendar')} className={`hidden sm:inline-flex ${currentView === 'calendar' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
-            Calendar
-          </Button>
-          <Button variant="link" onClick={() => setCurrentView('guide')} className={`hidden sm:inline-flex ${currentView === 'guide' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
-            Guide
-          </Button>
-          <span className="text-sm font-mono text-muted-foreground/60 hidden sm:inline-block">Press Ctrl+K to Journal</span>
-          <LoginButton />
-          <Button variant="outline" size="sm" onClick={() => { setDateInput(birthDate || ''); setShowBirthdateModal(true); }}>
-            <span className="hidden sm:inline">Edit Birthdate</span>
-            <span className="sm:hidden">Age</span>
-          </Button>
-          <Button variant="outline" size="icon" className="rounded-full bg-card" onClick={toggleTheme}>
-            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
+          <div className="hidden md:flex items-center gap-4">
+            <Button variant="link" onClick={() => setCurrentView('home')} className={`inline-flex ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+              Home
+            </Button>
+            <Button variant="link" onClick={() => setCurrentView('calendar')} className={`inline-flex ${currentView === 'calendar' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+              Calendar
+            </Button>
+            <Button variant="link" onClick={() => setCurrentView('guide')} className={`inline-flex ${currentView === 'guide' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
+              Guide
+            </Button>
+            <span className="text-sm font-mono text-muted-foreground/60 inline-block">Press Ctrl+K to Journal</span>
+            <LoginButton />
+            <Button variant="outline" size="sm" onClick={() => { setDateInput(birthDate || ''); setShowBirthdateModal(true); }}>
+              Edit Birthdate
+            </Button>
+            <Button variant="outline" size="icon" className="rounded-full bg-card" onClick={toggleTheme}>
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          </div>
+          
+          <div className="md:hidden flex items-center gap-2">
+            <LoginButton />
+            <Button variant="outline" size="icon" className="rounded-full bg-card" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
       </header>
+
+      {/* Mobile Dropdown Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-20 left-4 right-4 bg-card border border-border/50 shadow-2xl rounded-xl p-4 flex flex-col gap-2 z-50">
+          <Button variant="ghost" className="justify-start w-full" onClick={() => { setCurrentView('home'); setIsMobileMenuOpen(false); }}>Home</Button>
+          <Button variant="ghost" className="justify-start w-full" onClick={() => { setCurrentView('calendar'); setIsMobileMenuOpen(false); }}>Calendar</Button>
+          <Button variant="ghost" className="justify-start w-full" onClick={() => { setCurrentView('guide'); setIsMobileMenuOpen(false); }}>Guide</Button>
+          <div className="h-px bg-border/50 w-full my-2"></div>
+          <Button variant="ghost" className="justify-start w-full" onClick={() => { setDateInput(birthDate || ''); setShowBirthdateModal(true); setIsMobileMenuOpen(false); }}>Edit Birthdate</Button>
+          <Button variant="ghost" className="justify-start w-full" onClick={() => { toggleTheme(); setIsMobileMenuOpen(false); }}>
+            Toggle Theme ({theme})
+          </Button>
+        </div>
+      )}
 
       {currentView === 'home' ? (
         <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 items-start h-[80vh]">
@@ -133,13 +157,6 @@ export default function App() {
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
       </Button>
-
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-md border border-border/50 shadow-2xl rounded-full flex items-center px-2 py-1 gap-1 z-50">
-        <Button variant="ghost" size="sm" onClick={() => setCurrentView('home')} className={`rounded-full px-4 ${currentView === 'home' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>Home</Button>
-        <Button variant="ghost" size="sm" onClick={() => setCurrentView('calendar')} className={`rounded-full px-4 ${currentView === 'calendar' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>Logs</Button>
-        <Button variant="ghost" size="sm" onClick={() => setCurrentView('guide')} className={`rounded-full px-4 ${currentView === 'guide' ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}>Guide</Button>
-      </div>
     </div>
   );
 }
