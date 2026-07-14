@@ -75,7 +75,7 @@ export const useStore = create<AppState>()(
         set({ birthDate: date });
         if (supabase) {
           supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) supabase!.from('profiles').upsert({ id: user.id, birthdate: date }).then();
+            if (user) supabase!.from('profiles').upsert({ id: user.id, birthdate: date }).then(({ error }) => { if (error) console.error('Profile sync error:', error); });
           });
         }
       },
@@ -83,7 +83,7 @@ export const useStore = create<AppState>()(
         set((state) => ({ logs: { ...state.logs, [dateKey]: text } }));
         if (supabase) {
           supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) supabase!.from('daily_logs').upsert({ user_id: user.id, log_date: dateKey, journal_text: text }).then();
+            if (user) supabase!.from('daily_logs').upsert({ user_id: user.id, log_date: dateKey, journal_text: text }).then(({ error }) => { if (error) console.error('Journal sync error:', error); });
           });
         }
       },
@@ -91,7 +91,7 @@ export const useStore = create<AppState>()(
         set({ priorities });
         if (supabase) {
           supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) supabase!.from('daily_logs').upsert({ user_id: user.id, log_date: new Date().toISOString().split('T')[0], priorities }).then();
+            if (user) supabase!.from('daily_logs').upsert({ user_id: user.id, log_date: new Date().toISOString().split('T')[0], priorities }).then(({ error }) => { if (error) console.error('Priority sync error:', error); });
           });
         }
       },
