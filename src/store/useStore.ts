@@ -25,6 +25,7 @@ interface AppState {
   setUser: (user: User | null) => void;
   setProfile: (profile: { username?: string, avatar_url?: string } | null) => void;
   fetchProfile: () => Promise<void>;
+  fetchLogs: () => Promise<void>;
   setBirthDate: (date: string | null) => void;
   setTheme: (theme: 'light' | 'dark') => void;
   setLog: (dateKey: string, text: string) => void;
@@ -56,8 +57,9 @@ export const useStore = create<AppState>()(
         set({ user });
         if (user) {
           get().fetchProfile();
+          get().fetchLogs();
         } else {
-          set({ profile: null });
+          set({ profile: null, logs: {} });
         }
       },
       setProfile: (profile) => set({ profile }),
@@ -66,8 +68,38 @@ export const useStore = create<AppState>()(
         if (!supabase) return;
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data } = await supabase.from('profiles').select('username, avatar_url').eq('id', user.id).single();
-          if (data) set({ profile: data });
+          const { data } = await supabase.from('profiles').select('username, avatar_url, birthdate').eq('id', user.id).single();
+          if (data) {
+            set({ profile: data });
+            if (data.birthdate) set({ birthDate: data.birthdate });
+          }
+        }
+      },
+      fetchLogs: async () => {
+        if (!supabase) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data, error } = await supabase.from('daily_logs').select('log_date, journal_text, priorities').eq('user_id', user.id);
+          if (data && !error) {
+            const logs: Record<string, string> = {};
+            let latestPriorities = get().priorities;
+            let latestDate = '';
+            
+            data.forEach((row) => {
+              if (row.journal_text) {
+                logs[row.log_date] = row.journal_text;
+              }
+              if (row.priorities && row.log_date > latestDate) {
+                latestPriorities = row.priorities;
+                latestDate = row.log_date;
+              }
+            });
+            
+            set((state) => ({ 
+              logs: { ...state.logs, ...logs },
+              priorities: latestDate ? latestPriorities : state.priorities
+            }));
+          }
         }
       },
       setTheme: (theme) => set({ theme }),
@@ -83,7 +115,12 @@ export const useStore = create<AppState>()(
         set((state) => ({ logs: { ...state.logs, [dateKey]: text } }));
         if (supabase) {
           supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) supabase!.from('daily_logs').upsert({ user_id: user.id, log_date: dateKey, journal_text: text }).then(({ error }) => { if (error) console.error('Journal sync error:', error); });
+            if (user) supabase!.from('daily_logs').upsert({ 
+              user_id: user.id, 
+              log_date: dateKey, 
+              journal_text: text,
+              priorities: get().priorities
+            }, { onConflict: 'user_id,log_date' }).then(({ error }) => { if (error) console.error('Journal sync error:', error); });
           });
         }
       },
@@ -91,7 +128,13 @@ export const useStore = create<AppState>()(
         set({ priorities });
         if (supabase) {
           supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) supabase!.from('daily_logs').upsert({ user_id: user.id, log_date: new Date().toISOString().split('T')[0], priorities }).then(({ error }) => { if (error) console.error('Priority sync error:', error); });
+            const today = new Date().toISOString().split('T')[0];
+            if (user) supabase!.from('daily_logs').upsert({ 
+              user_id: user.id, 
+              log_date: today, 
+              journal_text: get().logs[today] || null,
+              priorities 
+            }, { onConflict: 'user_id,log_date' }).then(({ error }) => { if (error) console.error('Priority sync error:', error); });
           });
         }
       },
