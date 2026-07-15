@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from '@/store/useStore';
 import { getDaysLived } from '@/lib/time';
-import { addDays, format } from 'date-fns';
+import { addDays, format, differenceInDays } from 'date-fns';
 
 export function LifeGrid() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const birthDate = useStore((state) => state.birthDate);
+  const logs = useStore((state) => state.logs);
   const openJournal = useStore((state) => state.openJournal);
   const [hoverInfo, setHoverInfo] = useState<{ x: number, y: number, dateStr: string, isFuture: boolean } | null>(null);
   const [cols, setCols] = useState(365);
@@ -54,16 +55,46 @@ export function LifeGrid() {
     const darkGray = style.getPropertyValue('--muted').trim() ? `oklch(${style.getPropertyValue('--muted')})` : '#3f3f46';
     const accent = style.getPropertyValue('--primary').trim() ? `oklch(${style.getPropertyValue('--primary')})` : '#ef4444';
     const futureColor = style.getPropertyValue('--border').trim() ? `oklch(${style.getPropertyValue('--border')})` : '#27272a';
+    const journalColor = style.getPropertyValue('--journal-highlight').trim() || '#FFFFFF';
+
+    // Parse logs to find indices
+    const logIndices = new Set<number>();
+    if (birthDate) {
+      const [by, bm, bd] = birthDate.split('-');
+      const bDate = new Date(Number(by), Number(bm) - 1, Number(bd));
+      Object.keys(logs).forEach(dateStr => {
+        const [ly, lm, ld] = dateStr.split('-');
+        const lDate = new Date(Number(ly), Number(lm) - 1, Number(ld));
+        const index = differenceInDays(lDate, bDate);
+        if (index >= 0 && index < daysLived) {
+          logIndices.add(index);
+        }
+      });
+    }
 
     // 1. Elapsed Days (Muted Dark Gray / Theme Muted)
     ctx.beginPath();
     for (let index = 0; index < daysLived; index++) {
-      const r = Math.floor(index / cols);
-      const c = index % cols;
-      ctx.rect(c * (cellSize + gap), r * (cellSize + gap), cellSize, cellSize);
+      if (!logIndices.has(index)) {
+        const r = Math.floor(index / cols);
+        const c = index % cols;
+        ctx.rect(c * (cellSize + gap), r * (cellSize + gap), cellSize, cellSize);
+      }
     }
     ctx.fillStyle = darkGray;
     ctx.fill();
+
+    // 1b. Logged Days (Highlight Color)
+    if (logIndices.size > 0) {
+      ctx.beginPath();
+      for (const index of logIndices) {
+        const r = Math.floor(index / cols);
+        const c = index % cols;
+        ctx.rect(c * (cellSize + gap), r * (cellSize + gap), cellSize, cellSize);
+      }
+      ctx.fillStyle = journalColor;
+      ctx.fill();
+    }
 
     // 2. Future Days (Single pixel dot / subtle outline)
     ctx.beginPath();
@@ -82,7 +113,7 @@ export function LifeGrid() {
       ctx.fillStyle = accent;
       ctx.fillRect(c * (cellSize + gap), r * (cellSize + gap), cellSize, cellSize);
     }
-  }, [birthDate, cols]);
+  }, [birthDate, cols, logs]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!birthDate) return;

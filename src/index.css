@@ -29,6 +29,7 @@
     --ring: #E0218A;
     --radius: 0.5rem;
     --app-bg: radial-gradient(circle at 50% 0%, #F7B9D7 0%, #FACDE5 100%);
+    --journal-highlight: #FFFFFF; /* Crisp white stands out beautifully on pink */
   }
 
   .dark {
@@ -53,6 +54,7 @@
     --input: #3A1B8C;
     --ring: #C4A8FF;
     --app-bg: radial-gradient(circle at 50% 0%, #2A173B 0%, #150821 100%);
+    --journal-highlight: #00F0FF; /* Wakandan vibranium cyan/blue contrast */
   }
 }
 
