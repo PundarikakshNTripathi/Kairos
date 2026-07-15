@@ -52,9 +52,9 @@ export function LifeGrid() {
     ctx.clearRect(0, 0, width, height);
 
     const style = getComputedStyle(document.documentElement);
-    const darkGray = style.getPropertyValue('--muted').trim() ? `oklch(${style.getPropertyValue('--muted')})` : '#3f3f46';
-    const accent = style.getPropertyValue('--primary').trim() ? `oklch(${style.getPropertyValue('--primary')})` : '#ef4444';
-    const futureColor = style.getPropertyValue('--border').trim() ? `oklch(${style.getPropertyValue('--border')})` : '#27272a';
+    const darkGray = style.getPropertyValue('--muted').trim() || '#3f3f46';
+    const accent = style.getPropertyValue('--primary').trim() || '#ef4444';
+    const futureColor = style.getPropertyValue('--border').trim() || '#27272a';
     const journalColor = style.getPropertyValue('--journal-highlight').trim() || '#FFFFFF';
 
     // Parse logs to find indices

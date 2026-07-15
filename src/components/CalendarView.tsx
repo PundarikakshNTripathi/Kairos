@@ -113,14 +113,16 @@ export function CalendarView() {
                     ${isCurrentMonth ? 'bg-card hover:bg-muted/50' : 'bg-muted/10 text-muted-foreground/30 hover:bg-muted/30'}
                     ${isCurrentDay ? 'ring-2 ring-primary ring-inset' : ''}
                   `}
+                  style={hasLog ? { backgroundColor: 'color-mix(in srgb, var(--journal-highlight) 5%, transparent)' } : {}}
                 >
                   <div className="flex justify-between items-start">
                     <span className={`font-mono text-sm ${isCurrentDay ? 'text-primary font-bold' : isCurrentMonth ? 'text-foreground' : ''}`}>
                       {format(day, 'd')}
                     </span>
+                    {hasLog && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--journal-highlight)' }} title="Journal Logged" />}
                   </div>
                   {hasLog && (
-                    <div className="mt-2 text-xs text-muted-foreground truncate opacity-70">
+                    <div className="mt-2 text-xs truncate opacity-90 font-medium" style={{ color: 'var(--journal-highlight)' }}>
                       {logs[dateStr].substring(0, 30)}...
                     </div>
                   )}
