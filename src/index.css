@@ -1,90 +1,194 @@
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/instrument-serif/400-italic.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* Kairos: "Ash" (dark, default) and "Bone" (light) */
   :root {
-    /* Barbie Doll Pinks Theme */
-    --background: #FACDE5;
-    --foreground: #4A0A2D; /* Darker pink for better contrast */
-    --card: #F7B9D7;
-    --card-foreground: #4A0A2D;
-    --popover: #F7B9D7;
-    --popover-foreground: #4A0A2D;
-    --primary: #E0218A;
-    --primary-foreground: #FFFFFF;
-    --secondary: #F18DBC;
-    --secondary-foreground: #4A0A2D;
-    --muted: #F18DBC; /* Softer background */
-    --muted-foreground: #6B0F3F; /* Much darker pink for placeholders/contrast */
-    --accent: #F18DBC;
-    --accent-foreground: #4A0A2D;
-    --destructive: #E0218A;
-    --destructive-foreground: #FFFFFF;
-    --border: #ED5C9B;
-    --input: #ED5C9B;
-    --ring: #E0218A;
-    --radius: 0.5rem;
-    --app-bg: radial-gradient(circle at 50% 0%, #F7B9D7 0%, #FACDE5 100%);
-    --journal-highlight: #F59E0B; /* Bold Amber */
+    --background: #e9e3d4;
+    --foreground: #14110f;
+    --card: #eee8da;
+    --card-foreground: #14110f;
+    --popover: #f1ecdf;
+    --popover-foreground: #14110f;
+    --primary: #c4190d;
+    --primary-foreground: #f6f1e6;
+    --secondary: #ddd5c2;
+    --secondary-foreground: #14110f;
+    --muted: #ddd5c2;
+    --muted-foreground: #5c5448;
+    --accent: #ddd5c2;
+    --accent-foreground: #14110f;
+    --destructive: #c4190d;
+    --destructive-foreground: #f6f1e6;
+    --border: #c2b9a4;
+    --input: #b3a98f;
+    --ring: #c4190d;
+    --radius: 0.125rem;
+    --journal-highlight: #a85f00;
+    --grid-past: #14110f;
+    --grid-past-alpha: 0.34;
+    --grid-future: #14110f;
+    --grid-future-alpha: 0.5;
+    --dread: 0;
+    color-scheme: light;
   }
 
   .dark {
-    /* Black Panther's Vibranium Theme */
-    --background: #150821; /* More purple/pinkish accent */
-    --foreground: #E0D4FF; /* Brighter foreground for contrast */
-    --card: #1A0554;
-    --card-foreground: #E0D4FF;
-    --popover: #1A0554;
-    --popover-foreground: #E0D4FF;
-    --primary: #C4A8FF;
-    --primary-foreground: #0A0514;
-    --secondary: #2C106B;
-    --secondary-foreground: #FFFFFF;
-    --muted: #2C106B;
-    --muted-foreground: #9F82DB; /* Improved contrast for muted text */
-    --accent: #2C106B;
-    --accent-foreground: #FFFFFF;
-    --destructive: #E0218A;
-    --destructive-foreground: #FFFFFF;
-    --border: #3A1B8C;
-    --input: #3A1B8C;
-    --ring: #C4A8FF;
-    --app-bg: radial-gradient(circle at 50% 0%, #2A173B 0%, #150821 100%);
-    --journal-highlight: #F59E0B; /* Bold Amber */
+    --background: #0a0908;
+    --foreground: #ece6da;
+    --card: #100e0c;
+    --card-foreground: #ece6da;
+    --popover: #14110e;
+    --popover-foreground: #ece6da;
+    --primary: #ff3b2f;
+    --primary-foreground: #0a0908;
+    --secondary: #1b1814;
+    --secondary-foreground: #ece6da;
+    --muted: #1b1814;
+    --muted-foreground: #988f81;
+    --accent: #211c17;
+    --accent-foreground: #ece6da;
+    --destructive: #ff3b2f;
+    --destructive-foreground: #0a0908;
+    --border: #2b2620;
+    --input: #3a342b;
+    --ring: #ff3b2f;
+    --journal-highlight: #f2a33a;
+    --grid-past: #ece6da;
+    --grid-past-alpha: 0.22;
+    --grid-future: #ece6da;
+    --grid-future-alpha: 0.55;
+    color-scheme: dark;
   }
-}
 
-@layer base {
-  body {
-    background: var(--app-bg);
-    background-attachment: fixed;
-    color: var(--foreground);
-    @apply antialiased min-h-screen;
-  }  .theme {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
-  }
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+
   html {
-    @apply font-sans;
+    font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased min-h-screen;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
+@layer utilities {
+  .font-display {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
-  body {
-    @apply bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground;
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  .font-mono {
+    font-family: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
   }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+  .eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground;
+  }
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border); }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+}
+
+/* The room gets darker, and warmer in the wrong way, as your life is used up. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 120% 70% at 50% 110%, color-mix(in srgb, var(--primary) calc(var(--dread) * 38%), transparent), transparent 70%),
+    radial-gradient(ellipse at 50% 40%, transparent 45%, rgb(0 0 0 / calc(0.25 + var(--dread) * 0.45)) 100%);
+  transition: opacity 1s;
+}
+:root:not(.dark) body::before {
+  background: radial-gradient(ellipse 120% 70% at 50% 110%, color-mix(in srgb, var(--primary) calc(var(--dread) * 22%), transparent), transparent 70%);
+}
+#root { position: relative; z-index: 1; }
+
+/* Today: a cell that will not stop signalling */
+@keyframes now-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0.15; }
+}
+@keyframes now-ping {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(7); opacity: 0; }
+}
+.now-cell {
+  position: absolute;
+  background: var(--primary);
+  box-shadow: 0 0 10px 1px var(--primary);
+  animation: now-blink 1.4s steps(1, end) infinite;
+}
+.now-ring {
+  position: absolute;
+  border: 1px solid var(--primary);
+  animation: now-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes drip {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(0.6em); opacity: 0; }
+}
+.struck {
+  position: relative;
+  color: var(--muted-foreground);
+}
+.struck::after {
+  content: '';
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  top: 52%;
+  height: 0.07em;
+  background: var(--primary);
+  transform-origin: left center;
+  animation: strike 0.9s 0.5s cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+@keyframes strike {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal { animation: reveal-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+@keyframes heartbeat {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.heartbeat { animation: heartbeat 1s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .now-cell { animation: none; }
+  .now-ring, .heartbeat { animation: none; }
+  .struck::after { animation-duration: 0.01s; animation-delay: 0s; }
+  .reveal { animation: none; }
 }

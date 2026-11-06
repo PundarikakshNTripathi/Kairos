@@ -10,7 +10,6 @@ export function ProfileModal() {
   const isProfileOpen = useStore(state => state.isProfileOpen);
   const setProfileOpen = useStore(state => state.setProfileOpen);
   const user = useStore(state => state.user);
-  const profile = useStore(state => state.profile);
   const setProfile = useStore(state => state.setProfile);
 
   const [username, setUsername] = useState('');
@@ -18,14 +17,18 @@ export function ProfileModal() {
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [message, setMessage] = useState('');
+  const [imgFailed, setImgFailed] = useState(false);
 
+  // Populate the form once per opening. Depending on `profile`/`user` here would re-run after every
+  // successful save and wipe the confirmation message the moment it appears.
   useEffect(() => {
-    if (isProfileOpen) {
-      setUsername(profile?.username || user?.user_metadata?.user_name || user?.user_metadata?.full_name || '');
-      setAvatarUrl(profile?.avatar_url || user?.user_metadata?.avatar_url || '');
-      setMessage('');
-    }
-  }, [isProfileOpen, profile, user]);
+    if (!isProfileOpen) return;
+    const { profile: p, user: u } = useStore.getState();
+    setUsername(p?.username || u?.user_metadata?.user_name || u?.user_metadata?.full_name || '');
+    setAvatarUrl(p?.avatar_url || u?.user_metadata?.avatar_url || '');
+    setMessage('');
+    setImgFailed(false);
+  }, [isProfileOpen]);
 
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -110,6 +113,7 @@ export function ProfileModal() {
           .getPublicUrl(fileName);
           
         setAvatarUrl(publicUrl);
+        setImgFailed(false);
         
         // Auto-save the new url to the profile table
         const updates = {
@@ -135,81 +139,74 @@ export function ProfileModal() {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleImageFile(e.dataTransfer.files[0]);
-    }
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) handleImageFile(files[0]);
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
-    if (e.clipboardData.files && e.clipboardData.files.length > 0) {
-      handleImageFile(e.clipboardData.files[0]);
-    }
+    const files = e.clipboardData?.files;
+    if (files && files.length > 0) handleImageFile(files[0]);
   };
+
+  const isError = /error|failed|please select/i.test(message);
 
   return (
     <Dialog open={isProfileOpen} onOpenChange={setProfileOpen}>
-      <DialogContent className="max-w-sm" onPaste={handlePaste} onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
-        <DialogTitle>Edit Profile</DialogTitle>
-        <DialogDescription>
-          Update your public profile details.
-        </DialogDescription>
-        
-        <div className="flex flex-col items-center gap-4 mt-4">
-          {/* Avatar Display */}
-          <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
-            <div className="w-24 h-24 rounded-full border-2 border-border/50 overflow-hidden bg-muted flex items-center justify-center shadow-lg transition-transform hover:scale-105">
-              {uploadingImage ? (
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              ) : avatarUrl ? (
-                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <User className="w-10 h-10 text-muted-foreground/50" />
-              )}
-              
-              {!uploadingImage && (
-                <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Upload className="w-6 h-6 text-foreground" />
-                </div>
-              )}
-            </div>
-          </div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest text-center mt-[-8px]">
-            Click, drag, or paste image
-          </p>
-
-          <input 
-            id="avatar-upload" 
-            type="file" 
-            accept="image/*" 
-            className="hidden" 
-            onChange={(e) => {
-              if (e.target.files && e.target.files.length > 0) {
-                handleImageFile(e.target.files[0]);
-              }
-            }} 
-          />
-
-          <form onSubmit={handleSave} className="flex flex-col gap-4 w-full mt-2">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs text-muted-foreground uppercase tracking-widest">Username</label>
-              <Input 
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Your username"
-              />
-            </div>
-            
-            {message && (
-              <p className={`text-xs text-center ${message.includes('Error') || message.includes('Failed') ? 'text-destructive' : 'text-primary'}`}>
-                {message}
-              </p>
-            )}
-
-            <Button type="submit" disabled={loading || uploadingImage} className="mt-2">
-              {loading ? 'Saving...' : 'Save Profile'}
-            </Button>
-          </form>
+      <DialogContent className="sm:max-w-sm p-6 gap-5 border border-border" onPaste={handlePaste} onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
+        <div>
+          <p className="eyebrow">Account</p>
+          <DialogTitle className="font-display !text-4xl !leading-[1.05] mt-2">Your profile</DialogTitle>
+          <DialogDescription className="mt-2">Shown only to you. Click, drag or paste an image to change your avatar.</DialogDescription>
         </div>
+
+        <div className="flex flex-col items-center gap-3">
+          <button
+            type="button"
+            onClick={() => document.getElementById('avatar-upload')?.click()}
+            aria-label="Change avatar"
+            className="group relative size-24 border border-border bg-muted grid place-items-center overflow-hidden hover:border-primary transition-colors"
+          >
+            {uploadingImage ? (
+              <Loader2 className="size-8 animate-spin text-primary" />
+            ) : avatarUrl && !imgFailed ? (
+              <img src={avatarUrl} alt="" className="size-full object-cover" onError={() => setImgFailed(true)} onLoad={() => setImgFailed(false)} />
+            ) : (
+              <User className="size-10 text-muted-foreground" />
+            )}
+            {!uploadingImage && (
+              <span className="absolute inset-0 bg-background/70 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity grid place-items-center">
+                <Upload className="size-6 text-foreground" />
+              </span>
+            )}
+          </button>
+          <input
+            id="avatar-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            data-testid="avatar-input"
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) handleImageFile(e.target.files[0]);
+            }}
+          />
+        </div>
+
+        <form onSubmit={handleSave} className="flex flex-col gap-4">
+          <label className="flex flex-col gap-2">
+            <span className="eyebrow">Username</span>
+            <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Your username" className="h-10" data-testid="username-input" />
+          </label>
+
+          {message && (
+            <p role="status" className={`text-xs ${isError ? 'text-primary' : 'text-foreground'}`} data-testid="profile-message">
+              {message}
+            </p>
+          )}
+
+          <Button type="submit" disabled={loading || uploadingImage} className="h-10 font-mono text-sm uppercase tracking-[0.18em]" data-testid="profile-save">
+            {loading ? 'Saving…' : 'Save profile'}
+          </Button>
+        </form>
       </DialogContent>
     </Dialog>
   );

@@ -1,137 +1,139 @@
 import { useState } from 'react';
-import { useStore } from '@/store/useStore';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import { 
-  format, 
-  addMonths, 
-  subMonths, 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
-  eachDayOfInterval, 
-  isSameMonth, 
+import {
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isAfter,
+  isSameMonth,
   isToday,
+  isValid,
   parseISO,
-  isValid
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+  subMonths,
 } from 'date-fns';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useStore } from '@/store/useStore';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { parseBirthDate } from '@/lib/time';
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export function CalendarView() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [searchInput, setSearchInput] = useState('');
-  const logs = useStore(state => state.logs);
-  const openJournal = useStore(state => state.openJournal);
+  const [cursor, setCursor] = useState(new Date());
+  const [jump, setJump] = useState('');
+  const logs = useStore((s) => s.logs);
+  const birthDate = useStore((s) => s.birthDate);
+  const openJournal = useStore((s) => s.openJournal);
 
-  const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-  const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
+  const birth = parseBirthDate(birthDate);
+  const today = startOfDay(new Date());
+  const monthStart = startOfMonth(cursor);
+  const days = eachDayOfInterval({ start: startOfWeek(monthStart), end: endOfWeek(endOfMonth(monthStart)) });
+  const monthKey = format(monthStart, 'yyyy-MM');
+  const writtenThisMonth = Object.keys(logs).filter((k) => k.startsWith(monthKey) && logs[k]).length;
+  const totalWritten = Object.values(logs).filter(Boolean).length;
+  const canGoBack = !birth || isAfter(monthStart, startOfMonth(birth));
+  const canGoForward = isAfter(startOfMonth(today), monthStart);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleJump = (e: { preventDefault: () => void }) => {
     e.preventDefault();
-    if (!searchInput) return;
-    const parsedDate = parseISO(searchInput);
-    if (isValid(parsedDate)) {
-      setCurrentDate(parsedDate);
-      openJournal(searchInput);
-    }
+    const parsed = parseISO(jump);
+    if (!isValid(parsed) || isAfter(parsed, today)) return;
+    setCursor(parsed);
+    openJournal(jump);
   };
 
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart);
-  const endDate = endOfWeek(monthEnd);
-
-  const days = eachDayOfInterval({ start: startDate, end: endDate });
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-500 pb-16">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="w-full max-w-5xl pb-16 reveal">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-4xl font-light tracking-tight text-primary">Calendar & Logs</h2>
-          <p className="text-lg text-muted-foreground mt-2">
-            Track your history. Jump to any day to view or edit its journal.
+          <p className="eyebrow">The days you can still touch</p>
+          <h2 className="font-display text-5xl sm:text-6xl leading-none mt-2">Calendar</h2>
+          <p className="text-sm text-muted-foreground mt-3">
+            <span className="text-foreground tnum">{totalWritten}</span> days written down in total.{' '}
+            <span className="text-foreground tnum">{writtenThisMonth}</span> this month.
           </p>
         </div>
-
-        <form onSubmit={handleSearch} className="flex gap-2 w-full sm:w-auto">
-          <Input 
-            type="date" 
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full sm:w-auto"
-            max={format(new Date(), 'yyyy-MM-dd')}
+        <form onSubmit={handleJump} className="flex gap-2">
+          <Input
+            type="date"
+            value={jump}
+            onChange={(e) => setJump(e.target.value)}
+            max={format(today, 'yyyy-MM-dd')}
+            min={birthDate || undefined}
+            aria-label="Jump to date"
+            className="h-9 font-mono w-44"
           />
-          <Button type="submit" variant="secondary">
-            <Search className="w-4 h-4 mr-2" />
-            Jump
+          <Button type="submit" variant="outline" className="h-9 px-4 font-mono text-xs uppercase tracking-widest" disabled={!jump}>
+            Open
           </Button>
         </form>
       </div>
 
-      <Card className="border-border/50 bg-card shadow-xl overflow-hidden">
-        <CardHeader className="border-b border-border/30 bg-muted/20">
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-2xl font-light tracking-wide">
-              {format(currentDate, 'MMMM yyyy')}
-            </CardTitle>
-            <div className="flex gap-2">
-              <Button variant="outline" size="icon" onClick={prevMonth}>
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={nextMonth}>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
+      <div className="border border-border bg-card/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <h3 className="font-display text-3xl" data-testid="month-title">{format(cursor, 'MMMM yyyy')}</h3>
+          <div className="flex gap-1.5">
+            <Button variant="outline" size="icon" className="size-10 sm:size-8" aria-label="Previous month" disabled={!canGoBack} onClick={() => setCursor(subMonths(cursor, 1))}>
+              <ChevronLeft />
+            </Button>
+            <Button variant="outline" className="h-10 sm:h-8 px-3 font-mono text-xs uppercase tracking-widest" onClick={() => setCursor(new Date())}>
+              Today
+            </Button>
+            <Button variant="outline" size="icon" className="size-10 sm:size-8" aria-label="Next month" disabled={!canGoForward} onClick={() => setCursor(addMonths(cursor, 1))}>
+              <ChevronRight />
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="grid grid-cols-7 border-b border-border/30">
-            {weekDays.map(day => (
-              <div key={day} className="py-3 text-center text-sm font-medium text-muted-foreground uppercase tracking-widest border-r border-border/30 last:border-r-0">
-                {day}
-              </div>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-7">
-            {days.map((day, idx) => {
-              const dateStr = format(day, 'yyyy-MM-dd');
-              const hasLog = !!logs[dateStr];
-              const isCurrentMonth = isSameMonth(day, monthStart);
-              const isCurrentDay = isToday(day);
+        </div>
 
-              return (
-                <div 
-                  key={day.toString()}
-                  onClick={() => openJournal(dateStr)}
-                  className={`
-                    min-h-[100px] p-2 border-r border-b border-border/30 last:border-r-0 cursor-pointer transition-colors
-                    ${(idx + 1) % 7 === 0 ? 'border-r-0' : ''}
-                    ${isCurrentMonth ? 'bg-card hover:bg-muted/50' : 'bg-muted/10 text-muted-foreground/30 hover:bg-muted/30'}
-                    ${isCurrentDay ? 'ring-2 ring-primary ring-inset' : ''}
-                  `}
-                  style={hasLog ? { backgroundColor: 'color-mix(in srgb, var(--journal-highlight) 5%, transparent)' } : {}}
-                >
-                  <div className="flex justify-between items-start">
-                    <span className={`font-mono text-sm ${isCurrentDay ? 'text-primary font-bold' : isCurrentMonth ? 'text-foreground' : ''}`}>
-                      {format(day, 'd')}
+        <div className="grid grid-cols-7 border-b border-border">
+          {WEEKDAYS.map((d) => (
+            <div key={d} className="py-2 text-center eyebrow">{d}</div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7">
+          {days.map((day) => {
+            const key = format(day, 'yyyy-MM-dd');
+            const entry = logs[key];
+            const inMonth = isSameMonth(day, monthStart);
+            const future = isAfter(day, today);
+            const before = birth ? day < birth : false;
+            const disabled = future || before;
+            const now = isToday(day);
+            return (
+              <button
+                key={key}
+                type="button"
+                disabled={disabled}
+                onClick={() => openJournal(key)}
+                aria-label={`${format(day, 'EEEE d MMMM yyyy')}${entry ? ', has an entry' : ''}${future ? ', not yet' : ''}`}
+                data-has-log={entry ? 'true' : undefined}
+                data-today={now ? 'true' : undefined}
+                className={`relative text-left min-h-[64px] sm:min-h-[104px] p-1.5 sm:p-2.5 border-r border-b border-border [&:nth-child(7n)]:border-r-0 transition-colors focus-visible:z-10 ${
+                  disabled ? 'cursor-not-allowed text-muted-foreground/40 bg-[repeating-linear-gradient(135deg,transparent,transparent_6px,var(--border)_6px,var(--border)_7px)] opacity-60' : 'hover:bg-accent'
+                } ${!inMonth && !disabled ? 'opacity-45' : ''} ${now ? 'shadow-[inset_0_0_0_2px_var(--primary)]' : ''}`}
+              >
+                <span className={`font-mono text-xs sm:text-sm tnum ${now ? 'text-primary font-bold' : ''}`}>{format(day, 'd')}</span>
+                {entry && (
+                  <>
+                    <span className="absolute top-2 right-2 size-1.5 rounded-full bg-[var(--journal-highlight)]" />
+                    <span className="hidden sm:block mt-2 text-xs leading-snug text-[var(--journal-highlight)] line-clamp-3 break-words">
+                      {entry}
                     </span>
-                    {hasLog && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--journal-highlight)' }} title="Journal Logged" />}
-                  </div>
-                  {hasLog && (
-                    <div className="mt-2 text-xs truncate opacity-90 font-medium" style={{ color: 'var(--journal-highlight)' }}>
-                      {logs[dateStr].substring(0, 30)}...
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                  </>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground mt-3 font-mono">Hatched days have not happened. You cannot write in them yet.</p>
     </div>
   );
 }

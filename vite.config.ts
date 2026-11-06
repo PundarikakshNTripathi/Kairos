@@ -14,8 +14,8 @@ export default defineConfig({
         name: 'Kairos',
         short_name: 'Kairos',
         description: 'Executive Focus & Life Tracker',
-        theme_color: '#000000',
-        background_color: '#000000',
+        theme_color: '#0a0908',
+        background_color: '#0a0908',
         display: 'standalone',
         icons: [
           {

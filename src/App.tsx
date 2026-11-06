@@ -1,162 +1,191 @@
 import { useEffect, useState } from 'react';
+import { Menu, Moon, PenLine, Settings, Sun, X } from 'lucide-react';
 import { LifeGrid } from './components/LifeGrid';
 import { FocusBoard } from './components/FocusBoard';
 import { JournalModal } from './components/JournalModal';
 import { ProfileModal } from './components/ProfileModal';
 import { Guide } from './components/Guide';
 import { CalendarView } from './components/CalendarView';
-import { useStore } from './store/useStore';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { format } from 'date-fns';
-import { Moon, Sun, Menu, X } from 'lucide-react';
-
+import { DeathClock } from './components/DeathClock';
+import { Memento } from './components/Memento';
+import { SettingsModal } from './components/SettingsModal';
 import { LoginButton } from './components/LoginButton';
+import { useStore } from './store/useStore';
+import { useDayKey } from './lib/hooks';
 import { supabase } from './lib/supabase';
 
-export default function App() {
-  const hasHydrated = useStore((state) => state.hasHydrated);
-  const birthDate = useStore((state) => state.birthDate);
-  const setBirthDate = useStore((state) => state.setBirthDate);
-  const setUser = useStore((state) => state.setUser);
-  const theme = useStore((state) => state.theme);
-  const setTheme = useStore((state) => state.setTheme);
-  const [dateInput, setDateInput] = useState('');
-  const [currentView, setCurrentView] = useState<'home' | 'guide' | 'calendar'>('home');
-  const [showBirthdateModal, setShowBirthdateModal] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+type View = 'home' | 'calendar' | 'guide';
+const NAV: { id: View; label: string }[] = [
+  { id: 'home', label: 'Life' },
+  { id: 'calendar', label: 'Calendar' },
+  { id: 'guide', label: 'Guide' },
+];
 
-  useEffect(() => {
-    if (hasHydrated && !birthDate) {
-      setShowBirthdateModal(true);
-    }
-  }, [hasHydrated, birthDate]);
+export default function App() {
+  const hasHydrated = useStore((s) => s.hasHydrated);
+  const birthDate = useStore((s) => s.birthDate);
+  const lastMementoDay = useStore((s) => s.lastMementoDay);
+  const theme = useStore((s) => s.theme);
+  const setTheme = useStore((s) => s.setTheme);
+  const setUser = useStore((s) => s.setUser);
+  const [view, setView] = useState<View>('home');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const dayKey = useDayKey();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
-  // Listen for Supabase Auth changes globally
+  // A new calendar day has started since the last time the memento was acknowledged.
+  useEffect(() => {
+    if (hasHydrated && birthDate && (!lastMementoDay || lastMementoDay < dayKey)) useStore.getState().openMemento();
+  }, [hasHydrated, birthDate, lastMementoDay, dayKey]);
+
   useEffect(() => {
     if (!supabase) return;
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
     return () => subscription.unsubscribe();
   }, [setUser]);
 
-  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+  if (!hasHydrated) return null;
 
-  const handleSaveBirthDate = () => {
-    if (dateInput) {
-      setBirthDate(dateInput);
-      setShowBirthdateModal(false);
-    }
+  const go = (v: View) => {
+    setView(v);
+    setMenuOpen(false);
   };
-
-  if (!hasHydrated) return null; 
+  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
+  const journalToday = () => useStore.getState().openJournal();
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col items-center pt-8 p-4 selection:bg-primary selection:text-primary-foreground transition-colors duration-500">
-      
-      <Dialog open={showBirthdateModal} onOpenChange={setShowBirthdateModal}>
-        <DialogContent className="max-w-sm">
-          <DialogTitle>Welcome to Kairos</DialogTitle>
-          <DialogDescription>
-            Enter your date of birth to initialize your life grid.
-          </DialogDescription>
-          <div className="flex gap-2 mt-4">
-            <Input 
-              type="date" 
-              value={dateInput} 
-              onChange={(e: any) => setDateInput(e.target.value)} 
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSaveBirthDate(); }}
-              max={format(new Date(), 'yyyy-MM-dd')}
-            />
-            <Button onClick={handleSaveBirthDate}>Start</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+    <div className="min-h-screen flex flex-col items-center px-3 sm:px-5 pb-8">
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[300] bg-primary text-primary-foreground px-3 py-2">
+        Skip to content
+      </a>
 
-      <header className="w-full max-w-7xl flex justify-between items-center mb-8 px-2">
+      <header className="w-full max-w-[1500px] flex items-center justify-between py-4 sm:py-5 [@media(max-height:820px)]:py-2.5">
         <div className="flex items-center gap-3">
-          <img src="/favicon.png" alt="Kairos Logo" className="w-8 h-8 rounded-md" />
-          <h1 className="text-2xl font-light tracking-widest uppercase">Kairos</h1>
+          <img src="/favicon.png" alt="" className="size-7" />
+          <span className="font-display text-3xl leading-none tracking-wide">Kairos</span>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-4">
-            <Button variant="link" onClick={() => setCurrentView('home')} className={`inline-flex ${currentView === 'home' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
-              Home
-            </Button>
-            <Button variant="link" onClick={() => setCurrentView('calendar')} className={`inline-flex ${currentView === 'calendar' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
-              Calendar
-            </Button>
-            <Button variant="link" onClick={() => setCurrentView('guide')} className={`inline-flex ${currentView === 'guide' ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}>
-              Guide
-            </Button>
-            <span className="text-sm font-mono text-muted-foreground/60 inline-block">Press Ctrl+K to Journal</span>
-            <LoginButton />
-            <Button variant="outline" size="sm" onClick={() => { setDateInput(birthDate || ''); setShowBirthdateModal(true); }}>
-              Edit Birthdate
-            </Button>
-            <Button variant="outline" size="icon" className="rounded-full bg-card" onClick={toggleTheme}>
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-          </div>
-          
-          <div className="md:hidden flex items-center gap-2">
-            <LoginButton />
-            <Button variant="outline" size="icon" className="rounded-full bg-card" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-              {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            </Button>
-          </div>
+
+        <nav aria-label="Primary" className="hidden md:flex items-center gap-1">
+          {NAV.map((n) => (
+            <button
+              key={n.id}
+              onClick={() => go(n.id)}
+              aria-current={view === n.id ? 'page' : undefined}
+              className={`px-3 py-1.5 font-mono text-xs uppercase tracking-[0.2em] border-b-2 transition-colors ${
+                view === n.id ? 'text-primary border-primary' : 'text-muted-foreground border-transparent hover:text-foreground'
+              }`}
+            >
+              {n.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="hidden md:flex items-center gap-2">
+          <button
+            onClick={journalToday}
+            className="inline-flex items-center gap-2 border border-border px-3 h-8 font-mono text-xs text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+            data-testid="journal-today"
+          >
+            <PenLine className="size-3.5" /> Write today <kbd className="text-[10px] opacity-70">Ctrl K</kbd>
+          </button>
+          <LoginButton />
+          <button
+            onClick={() => useStore.getState().setSettingsOpen(true)}
+            aria-label="Settings"
+            title="Settings"
+            className="size-8 grid place-items-center border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+          >
+            <Settings className="size-4" />
+          </button>
+          <button
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+            title="Toggle theme"
+            className="size-8 grid place-items-center border border-border text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+          >
+            {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </button>
+        </div>
+
+        <div className="md:hidden flex items-center gap-2">
+          <LoginButton />
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            className="size-11 grid place-items-center border border-border"
+          >
+            {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+          </button>
         </div>
       </header>
 
-      {/* Mobile Dropdown Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-20 left-4 right-4 bg-card border border-border/50 shadow-2xl rounded-xl p-4 flex flex-col gap-2 z-50">
-          <Button variant="ghost" className="justify-start w-full" onClick={() => { setCurrentView('home'); setIsMobileMenuOpen(false); }}>Home</Button>
-          <Button variant="ghost" className="justify-start w-full" onClick={() => { setCurrentView('calendar'); setIsMobileMenuOpen(false); }}>Calendar</Button>
-          <Button variant="ghost" className="justify-start w-full" onClick={() => { setCurrentView('guide'); setIsMobileMenuOpen(false); }}>Guide</Button>
-          <div className="h-px bg-border/50 w-full my-2"></div>
-          <Button variant="ghost" className="justify-start w-full" onClick={() => { setDateInput(birthDate || ''); setShowBirthdateModal(true); setIsMobileMenuOpen(false); }}>Edit Birthdate</Button>
-          <Button variant="ghost" className="justify-start w-full" onClick={() => { toggleTheme(); setIsMobileMenuOpen(false); }}>
-            Toggle Theme ({theme})
-          </Button>
+      {menuOpen && (
+        <div className="md:hidden w-full max-w-[1500px] border border-border bg-card mb-3 p-2 flex flex-col" data-testid="mobile-menu">
+          {NAV.map((n) => (
+            <button
+              key={n.id}
+              onClick={() => go(n.id)}
+              className={`text-left px-3 py-3 font-mono text-sm uppercase tracking-[0.18em] ${view === n.id ? 'text-primary' : 'text-foreground'}`}
+            >
+              {n.label}
+            </button>
+          ))}
+          <div className="h-px bg-border my-1" />
+          <button className="text-left px-3 py-3 text-sm" onClick={() => { setMenuOpen(false); useStore.getState().setSettingsOpen(true); }}>
+            Settings
+          </button>
+          <button className="text-left px-3 py-3 text-sm" onClick={() => { toggleTheme(); setMenuOpen(false); }}>
+            Theme: {theme}
+          </button>
         </div>
       )}
 
-      {currentView === 'home' ? (
-        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 items-start h-[80vh]">
-          <div className="h-full border border-border/50 rounded-2xl bg-card shadow-2xl overflow-hidden relative">
-            <LifeGrid />
-          </div>
-          <div className="h-full border border-border/50 rounded-2xl bg-card shadow-2xl overflow-hidden">
-            <FocusBoard />
-          </div>
-        </div>
-      ) : currentView === 'calendar' ? (
-        <CalendarView />
-      ) : (
-        <Guide />
-      )}
-      
+      <main id="main" className="w-full flex flex-col items-center gap-3 sm:gap-4 flex-1">
+        {view === 'home' && birthDate && (
+          <>
+            <DeathClock />
+            <div className="w-full max-w-[1500px] grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_420px] gap-3 sm:gap-4 lg:flex-1 lg:min-h-[300px]">
+              <section aria-label="Life in days" className="border border-border bg-card/80 backdrop-blur-sm flex flex-col min-h-0">
+                <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 sm:px-5 py-3 border-b border-border">
+                  <p className="eyebrow">One square. One day. All of them.</p>
+                  <ul className="flex items-center gap-4 eyebrow !tracking-[0.14em]" aria-label="Legend">
+                    <li className="flex items-center gap-1.5"><i className="size-2 bg-foreground/30 inline-block" /> Gone</li>
+                    <li className="flex items-center gap-1.5"><i className="size-2 bg-[var(--journal-highlight)] inline-block" /> Written</li>
+                    <li className="flex items-center gap-1.5"><i className="size-2 bg-primary inline-block" /> Today</li>
+                    <li className="flex items-center gap-1.5"><i className="size-2 border border-foreground/60 inline-block" /> Left</li>
+                  </ul>
+                </div>
+                <div className="relative flex-1 min-h-0 p-2 sm:p-3">
+                  <LifeGrid />
+                </div>
+              </section>
+              <section aria-label="Focus" className="relative border border-border bg-card/80 backdrop-blur-sm min-h-0 lg:min-h-0">
+                <div className="lg:absolute lg:inset-0"><FocusBoard /></div>
+              </section>
+            </div>
+          </>
+        )}
+        {view === 'calendar' && <CalendarView />}
+        {view === 'guide' && <Guide />}
+      </main>
+
       <JournalModal />
       <ProfileModal />
-      <Button 
-        className="md:hidden fixed bottom-6 right-4 h-12 w-12 rounded-full shadow-2xl z-50 bg-primary text-primary-foreground flex items-center justify-center"
-        onClick={() => useStore.getState().openJournal(format(new Date(), 'yyyy-MM-dd'))}
+      <SettingsModal />
+      <Memento />
+
+      <button
+        className="md:hidden fixed bottom-5 right-4 size-12 grid place-items-center bg-primary text-primary-foreground shadow-2xl z-50"
+        onClick={journalToday}
+        aria-label="Write today's journal"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
-      </Button>
+        <PenLine className="size-5" />
+      </button>
     </div>
   );
 }

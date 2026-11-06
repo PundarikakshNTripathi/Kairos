@@ -27,7 +27,7 @@ Imagine seeing your entire 90-year lifespan visualized as a massive grid of tiny
 ## Deep Technical Approach
 Kairos is a blazingly fast Single Page Application (SPA) relying on a hybrid synchronization architecture. State persistence relies heavily on Optimistic UI principles: changes are written immediately to synchronous `localStorage` wrapped seamlessly into a Zustand store, entirely eliminating the micro-stutters and hydration flashes typical of asynchronous IndexedDB implementations. A background process then quietly syncs these changes to a Supabase (PostgreSQL) backend. 
 
-To achieve optimal performance, the 32,872 grid boxes required for the 90-year matrix are rendered using raw HTML5 Canvas APIs rather than individual DOM nodes. This circumvents the massive memory overhead and reflow costs associated with heavy DOM structures, ensuring a strict 60 frames per second rendering cycle. User input is strictly sanitized client-side using DOMPurify before any reflection to the UI to mitigate XSS vectors.
+To achieve optimal performance, the 32,872 grid boxes required for the 90-year matrix are rendered using raw HTML5 Canvas APIs rather than individual DOM nodes. This circumvents the massive memory overhead and reflow costs associated with heavy DOM structures, ensuring a strict 60 frames per second rendering cycle. Journal text is plain text and is only ever written into the DOM as `textContent`, never parsed as HTML, which removes the XSS vector without mangling what you wrote.
 
 ## System Architecture
 ```mermaid
@@ -61,14 +61,17 @@ graph TD
 │   └── icons.svg                   # PWA icon vectors
 ├── README.md                       # Comprehensive documentation (this file)
 ├── src/                            # Core application source code
-│   ├── App.css                     # Global component overrides
 │   ├── App.tsx                     # Main layout shell, router, and UI orchestration
-│   ├── assets/                     # Static media assets loaded via module bundlers
 │   ├── components/                 # React UI Components
-│   │   ├── FocusBoard.tsx          # The priority input board interface
+│   │   ├── CalendarView.tsx        # Monthly calendar of journal entries (future days locked)
+│   │   ├── DeathClock.tsx          # Live countdown hero: days left, d/h/m/s.t, % of life and of today spent
+│   │   ├── FocusBoard.tsx          # Priority list with keyboard flow, plus the Perspective panel
+│   │   ├── Memento.tsx             # Once-a-day "yesterday is gone" full-screen overlay
+│   │   ├── Perspective.tsx         # Weekends, birthdays, full moons, nights, meals and waking hours left
+│   │   ├── SettingsModal.tsx       # First-run onboarding, birthdate, lifespan, backup export/restore
 │   │   ├── Guide.tsx               # Philosophy and documentation view component
-│   │   ├── JournalModal.tsx        # Daily brain-dump modal using DOMPurify
-│   │   ├── LifeGrid.tsx            # HTML5 Canvas implementation of the 90-year calendar
+│   │   ├── JournalModal.tsx        # Daily journal modal (plain-text entries)
+│   │   ├── LifeGrid.tsx            # HTML5 Canvas grid sized to fit the whole life on screen
 │   │   ├── LoginButton.tsx         # OAuth and Magic Link authentication orchestration
 │   │   ├── ProfileModal.tsx        # Profile editing interface (avatar and username)
 │   │   └── ui/                     # shadcn/ui atomic design system components
@@ -79,8 +82,9 @@ graph TD
 │   │       └── textarea.tsx
 │   ├── index.css                   # Tailwind variable declarations and stark color themes
 │   ├── lib/                        # Pure utility functions and wrappers
+│   │   ├── hooks.ts                # useNow / useDayKey clock hooks
 │   │   ├── supabase.ts             # Supabase client initialization and exports
-│   │   ├── time.ts                 # Date math calculations for the grid
+│   │   ├── time.ts                 # Life statistics: days left, countdown split, perspectives
 │   │   └── utils.ts                # Class merge utilities for Tailwind
 │   ├── main.tsx                    # React DOM root render entry point
 │   └── store/                      # Zustand state management module
@@ -95,22 +99,27 @@ graph TD
 
 ## Tech Stack Used
 - **Core Framework:** React 19, TypeScript, Vite
-- **Styling:** Tailwind CSS v3, Radix UI (shadcn/ui), strict oklch theme boundaries
+- **Styling:** Tailwind CSS v3, Base UI (shadcn/ui), Instrument Serif, Geist and Geist Mono
 - **State and Sync:** Zustand, localStorage (synchronous), Supabase (PostgreSQL, Auth, Storage)
 - **Time Math:** date-fns
-- **Security:** DOMPurify
+- **Security:** CSP headers; journal text is only rendered as `textContent`
 - **PWA:** vite-plugin-pwa
 
 ## Features
-- **Temporal Canvas Grid:** Approximately 32,872 boxes spanning 90 years natively rendered via Canvas APIs. Rendering this volume of nodes via standard DOM elements typically causes 150-300ms of layout thrashing and severe garbage collection spikes. By bypassing the DOM entirely, the single Canvas element strictly maintains a ~2-5ms render time, achieving a flawless 60fps interaction rate even on entry-level mobile devices.
+- **Live Death Clock:** The hero shows the days you have left in large type, a countdown ticking to a tenth of a second, the percentage of your life and of today already gone, and the browser tab title itself counts down. The page background darkens and reddens slightly as the fraction of life spent grows.
+- **Daily Memento:** Once per calendar day (and after midnight while the app is open) a full-screen overlay strikes through yesterday's count, shows the new one, and lists the priorities you said mattered.
+- **What Is Actually Left:** Weekends, birthdays, full moons, nights, meals and waking hours remaining, derived from your numbers.
+- **Configurable Lifespan:** Expected lifespan (30 to 120 years, default 80) sizes the grid. Past that estimate the app switches to "borrowed time".
+- **Backup and Restore:** Export all data to JSON from Settings and merge it back in; malformed files are rejected.
+- **Temporal Canvas Grid:** One square per day of your estimated lifespan (29,220 at the default 80 years), rendered via Canvas APIs and scaled so the entire life fits in the panel without scrolling on desktop. Hover shows the date, your age on it, how far away it is, and a preview of any entry; today pulses, written days are amber, and the last day is marked. Rendering this volume of nodes via standard DOM elements typically causes 150-300ms of layout thrashing and severe garbage collection spikes. By bypassing the DOM entirely, the single Canvas element strictly maintains a ~2-5ms render time, achieving a flawless 60fps interaction rate even on entry-level mobile devices.
 - **Historical Calendar View:** Dedicated visual calendar grid supporting mouse navigation and precise date search capabilities, allowing instant jumping to any past daily log.
-- **Limitless Executive Focus:** Unbounded priority boarding allowing immediate input and instantaneous deletion via optimistic state updates.
+- **Executive Focus:** Priority list with Enter to add, Backspace on an empty row to remove, and blunt feedback when you list too many things.
 - **Command Palette Journal:** Deeply integrated global shortcut (Ctrl+K) journaling on Desktop, and an adaptive Floating Action Button on Mobile interfaces.
-- **Accurate Hex Theming:** "Black Panther Vibranium" dark mode and "Barbie Doll Pinks" light mode. Custom engineered contrast adjustments ensure optimal legibility across varying ambient light conditions.
+- **Ash and Bone Theming:** A near-black "Ash" dark theme (default) and a paper-toned "Bone" light theme, both with a single ember-red accent, an editorial serif for statements and a monospace for numbers.
 - **Passwordless Authentication and Profiles:** Secure login flows utilizing Email Magic Links, GitHub OAuth, or Google OAuth. Extended with a bespoke user profile system supporting custom usernames and avatar uploads.
 - **Philosophy Guide:** A natively rendered subpage detailing the exact mechanics, reasoning, and security paradigms embedded within the application.
 - **Hybrid Storage and Privacy:** Instant offline caching via native `localStorage`, seamlessly synced to a Supabase backend secured by strict Row Level Security (RLS) policies.
-- **Bulletproof Security:** Secured with rigid Content-Security-Policy (CSP) headers and DOMPurify for absolute Cross Site Scripting (XSS) immunity.
+- **Bulletproof Security:** Secured with a strict Content-Security-Policy and plain-text-only journal rendering (never parsed as HTML).
 - **Progressive Web App Ready:** Install natively to Windows, Mac, iOS, or Android directly from the browser without relying on centralized App Stores.
 
 ## Setup, Execution, and Usage
@@ -132,6 +141,7 @@ Visit the local development URL (or your deployed URL) and click the "Install" i
 ## Results, Benchmarks and Evaluation
 Real world performance benchmarks run locally against production builds yielded the following metrics:
 - **Canvas Rendering Pipeline:** Less than 5ms execution time to parse 32,872 distinct mathematical paths and render the grid.
+- **Browser verification:** Exercised with Playwright in Chromium, Firefox and WebKit on desktop, and with iPhone 15 (WebKit) and Pixel 7 (Chromium) touch emulation. Coverage: onboarding, day-count arithmetic cross-checked against an independent calculation, grid hover/click/tap, journaling (Enter/Esc/overlay/close-button saves, maximize, plain-text new-tab view), calendar (jump, month bounds, locked future days), memento and midnight rollover, settings, backup export/restore (including malformed files), avatar drag-and-drop/paste/file-chooser, themes, reduced motion, keyboard/tab order, and the Supabase login, OAuth redirect round trip, profile and sync flows against a mocked Supabase host. A real Supabase project, live GitHub/Google sign-in pages and physical devices were not tested.
 - **Hydration:** ~0ms latency to retrieve the user's data from `localStorage` and hydrate the Zustand global store synchronously, completely eliminating UI layout flashes on cold start.
 - **Memory Footprint:** The absolute reliance on Canvas over DOM nodes keeps the application's heap size below 30MB during peak interaction.
 
