@@ -39,7 +39,14 @@ export default {
           input: 'var(--input)',
           ring: 'var(--ring)'
         },
+        fontFamily: {
+          sans: ['"Geist Variable"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          mono: ['"Geist Mono Variable"', 'ui-monospace', 'monospace'],
+          display: ['"Instrument Serif"', 'Georgia', 'serif']
+        },
         borderRadius: {
+          xl: '4px',
+          '2xl': '4px',
           lg: 'var(--radius)',
           md: 'calc(var(--radius) - 2px)',
           sm: 'calc(var(--radius) - 4px)'

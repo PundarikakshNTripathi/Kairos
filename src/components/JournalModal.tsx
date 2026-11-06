@@ -1,105 +1,157 @@
 /**
- * Journaling Interface & Data Presentation
- * 
- * A deeply integrated modal component handling the creation and visualization
- * of daily logs. Security features include aggressive sanitization of user input 
- * via DOMPurify to mitigate Cross-Site Scripting (XSS) vulnerabilities during 
- * HTML export and DOM injection.
+ * Journaling Interface
+ *
+ * Full-screen-capable writing surface for a single day. Entries are plain text and are only ever
+ * written into the DOM as `textContent` (never parsed as HTML), so markup typed into an entry is
+ * displayed literally and cannot execute.
  */
-import { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { useStore } from '@/store/useStore';
-import { format } from 'date-fns';
-import { Maximize2, Minimize2, ExternalLink } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { differenceInCalendarDays, format, parseISO } from 'date-fns';
+import { ExternalLink, Maximize2, Minimize2, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import DOMPurify from 'dompurify';
+import { useStore } from '@/store/useStore';
+import { formatInt, getCurrentDateKey, getLifeStats } from '@/lib/time';
 
 export function JournalModal() {
-  const isJournalOpen = useStore((state) => state.isJournalOpen);
-  const activeJournalDate = useStore((state) => state.activeJournalDate);
-  const closeJournal = useStore((state) => state.closeJournal);
-  const openJournal = useStore((state) => state.openJournal);
-  const setLog = useStore((state) => state.setLog);
-  const logs = useStore((state) => state.logs);
+  const isOpen = useStore((s) => s.isJournalOpen);
+  const activeDate = useStore((s) => s.activeJournalDate);
+  const closeJournal = useStore((s) => s.closeJournal);
+  const openJournal = useStore((s) => s.openJournal);
+  const setLog = useStore((s) => s.setLog);
+  const logs = useStore((s) => s.logs);
+  const birthDate = useStore((s) => s.birthDate);
+  const lifespanYears = useStore((s) => s.lifespanYears);
 
   const [text, setText] = useState('');
   const [maximized, setMaximized] = useState(false);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const textRef = useRef('');
+  const loadedFor = useRef<string | null>(null);
+  // The day the text in the box belongs to. Saving is bound to this, never to derived state:
+  // Safari fires `blur` while the textarea unmounts, at which point `activeDate` is already null.
+  const editingDate = useRef<string | null>(null);
+  const lastShownDate = useRef<string>(getCurrentDateKey());
+  if (activeDate) lastShownDate.current = activeDate;
 
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const dateToUse = activeJournalDate || today;
+  // Keep showing the day being closed during the exit animation instead of flashing "today".
+  const dateKey = activeDate || lastShownDate.current;
 
+  // Load the day's text once per opening, not on every store change (that would clobber typing).
   useEffect(() => {
-    if (isJournalOpen) {
-      setText(logs[dateToUse] || '');
+    if (isOpen) {
+      if (loadedFor.current !== dateKey) {
+        const initial = useStore.getState().logs[dateKey] || '';
+        setText(initial);
+        textRef.current = initial;
+        loadedFor.current = dateKey;
+        editingDate.current = dateKey;
+        setSavedAt(null);
+      }
+    } else {
+      loadedFor.current = null;
     }
-  }, [isJournalOpen, dateToUse, logs]);
+  }, [isOpen, dateKey, logs]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      if (e.key.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        openJournal(today);
+        openJournal(getCurrentDateKey());
       }
     };
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
-  }, [openJournal, today]);
+  }, [openJournal]);
+
+  const persist = () => {
+    const key = editingDate.current;
+    if (!key) return; // nothing is being edited (e.g. a late blur after close)
+    const current = useStore.getState().logs[key] || '';
+    if (textRef.current !== current) {
+      setLog(key, textRef.current);
+      setSavedAt(format(new Date(), 'HH:mm:ss'));
+    }
+  };
+
+  const handleClose = () => {
+    persist();
+    editingDate.current = null;
+    closeJournal();
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
-      setLog(dateToUse, text);
-      closeJournal();
+      handleClose();
     }
   };
 
   const handleOpenNewTab = () => {
-    const newWindow = window.open('', '_blank');
-    if (newWindow) {
-      newWindow.document.write(`
-        <html>
-          <head>
-            <title>Journal - ${dateToUse}</title>
-            <style>
-              body { font-family: monospace; background: #000; color: #fff; padding: 2rem; white-space: pre-wrap; font-size: 16px; }
-            </style>
-          </head>
-          <body>${DOMPurify.sanitize(text) || 'No entry for this day.'}</body>
-        </html>
-      `);
-      newWindow.document.close();
-    }
+    const win = window.open('', '_blank');
+    if (!win) return;
+    const doc = win.document;
+    doc.title = `Journal ${dateKey}`;
+    doc.body.style.cssText = 'font:16px/1.6 ui-monospace,monospace;background:#0a0908;color:#ece6da;padding:2rem;white-space:pre-wrap;max-width:70ch;margin:auto';
+    doc.body.textContent = text || 'No entry for this day.';
   };
 
+  const stats = getLifeStats(birthDate, lifespanYears);
+  const day = parseISO(dateKey);
+  const dayNumber = stats ? differenceInCalendarDays(day, stats.birth) + 1 : null;
+  const isToday = dateKey === getCurrentDateKey();
+
   return (
-    <Dialog open={isJournalOpen} onOpenChange={(open: boolean) => !open && closeJournal()}>
-      <DialogContent showCloseButton={false} className={`${maximized ? '!max-w-[95vw] !w-[95vw] !h-[95vh]' : 'sm:max-w-4xl w-[90vw] h-[70vh]'} bg-background border-border/50 p-0 shadow-2xl transition-all duration-300 flex flex-col`}>
-        <DialogTitle className="sr-only">Daily Journal</DialogTitle>
-        <div className="p-4 border-b border-border/30 flex justify-between items-center bg-muted/20">
-          <span className="text-sm font-mono text-muted-foreground">Daily Journal // {dateToUse}</span>
-          <div className="flex gap-2 items-center">
-            <span className="text-xs text-muted-foreground/50 mr-4">Press Enter to save</span>
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setMaximized(!maximized)}>
-              {maximized ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+    <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && handleClose()}>
+      <DialogContent
+        showCloseButton={false}
+        className={`${maximized ? '!max-w-[96vw] !w-[96vw] !h-[94vh]' : 'sm:!max-w-3xl w-[94vw] h-[72vh]'} bg-background border border-border p-0 gap-0 shadow-2xl flex flex-col !rounded-sm`}
+      >
+        <div className="px-5 py-4 border-b border-border flex justify-between items-start gap-4">
+          <div className="min-w-0">
+            <p className="eyebrow">{isToday ? 'Today' : 'A day you already spent'}</p>
+            <DialogTitle className="font-display !text-3xl sm:!text-4xl !leading-none mt-1.5">
+              {format(day, 'EEEE, d MMMM yyyy')}
+            </DialogTitle>
+            <DialogDescription className="font-mono text-[11px] text-muted-foreground mt-2">
+              {dayNumber !== null && `Day ${formatInt(dayNumber)} of your life`}
+              {stats && isToday && !stats.outlived && ` · ${formatInt(stats.daysLeft)} left after this one`}
+            </DialogDescription>
+          </div>
+          <div className="flex gap-1 items-center shrink-0">
+            <Button variant="ghost" size="icon-sm" aria-label={maximized ? 'Shrink' : 'Maximize'} onClick={() => setMaximized(!maximized)}>
+              {maximized ? <Minimize2 /> : <Maximize2 />}
             </Button>
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleOpenNewTab}>
-              <ExternalLink className="h-3 w-3" />
+            <Button variant="ghost" size="icon-sm" aria-label="Open in new tab" onClick={handleOpenNewTab}>
+              <ExternalLink />
             </Button>
-            <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-destructive hover:text-destructive-foreground rounded-full" onClick={closeJournal}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x h-4 w-4"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <Button variant="ghost" size="icon-sm" aria-label="Save and close" onClick={handleClose} data-testid="journal-close">
+              <X />
             </Button>
           </div>
         </div>
-        <Textarea
+
+        <textarea
           value={text}
-          onChange={(e: any) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            textRef.current = e.target.value;
+          }}
           onKeyDown={handleKeyDown}
-          onBlur={() => setLog(dateToUse, text)} 
-          placeholder="Log your thoughts, milestones, or notes..."
-          className="flex-1 min-h-[300px] border-0 focus-visible:ring-0 resize-none bg-transparent text-lg font-light p-6 placeholder:text-muted-foreground rounded-none"
+          onBlur={persist}
+          placeholder={isToday ? 'What did this day hold? Write it before it is gone.' : 'What do you remember?'}
+          aria-label="Journal entry"
+          className="flex-1 min-h-0 w-full resize-none bg-transparent text-lg sm:text-xl font-light leading-relaxed p-5 sm:p-6 placeholder:text-muted-foreground outline-none"
           autoFocus
+          data-testid="journal-text"
         />
+
+        <div className="px-5 py-2.5 border-t border-border flex justify-between font-mono text-[11px] text-muted-foreground">
+          <span><span className="hidden sm:inline">Enter saves and closes · Shift+Enter for a new line · </span>Esc closes</span>
+          <span className="tnum" aria-live="polite">
+            {savedAt ? `Saved ${savedAt}` : `${text.length} chars`}
+          </span>
+        </div>
       </DialogContent>
     </Dialog>
   );

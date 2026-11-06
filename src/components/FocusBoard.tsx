@@ -1,79 +1,101 @@
-// React removed
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useRef } from 'react';
+import { Plus, X } from 'lucide-react';
 import { useStore } from '@/store/useStore';
-import { Plus, Download, X } from 'lucide-react';
+import { Perspective } from '@/components/Perspective';
 
 export function FocusBoard() {
-  const priorities = useStore((state) => state.priorities);
-  const setPriorities = useStore((state) => state.setPriorities);
+  const priorities = useStore((s) => s.priorities);
+  const setPriorities = useStore((s) => s.setPriorities);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  const updatePriority = (index: number, value: string) => {
-    const newPriorities = [...priorities];
-    newPriorities[index] = value;
-    setPriorities(newPriorities);
+  const filled = priorities.filter((p) => p.trim()).length;
+
+  const focusRow = (index: number) => {
+    requestAnimationFrame(() => {
+      listRef.current?.querySelectorAll<HTMLInputElement>('input')[index]?.focus();
+    });
   };
 
-  const addPriority = () => {
+  const update = (index: number, value: string) => {
+    const next = [...priorities];
+    next[index] = value;
+    setPriorities(next);
+  };
+
+  const add = () => {
     setPriorities([...priorities, '']);
+    focusRow(priorities.length);
   };
 
-  const removePriority = (index: number) => {
-    const newPriorities = priorities.filter((_, i) => i !== index);
-    setPriorities(newPriorities);
+  const remove = (index: number) => {
+    setPriorities(priorities.length > 1 ? priorities.filter((_, i) => i !== index) : ['']);
   };
 
-  const exportData = () => {
-    const state = useStore.getState();
-    const data = JSON.stringify({ birthDate: state.birthDate, logs: state.logs, priorities: state.priorities });
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'kairos-backup.json';
-    a.click();
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (index === priorities.length - 1) add();
+      else focusRow(index + 1);
+    } else if (e.key === 'Backspace' && priorities[index] === '' && priorities.length > 1) {
+      e.preventDefault();
+      remove(index);
+      focusRow(Math.max(0, index - 1));
+    }
   };
 
   return (
-    <Card className="border-0 rounded-none shadow-none bg-transparent h-full flex flex-col">
-      <CardHeader className="px-8 pt-8">
-        <CardTitle className="text-2xl font-light tracking-widest text-primary flex justify-between items-center">
-          <span>EXECUTIVE FOCUS</span>
-          <Button variant="ghost" size="icon" onClick={exportData} title="Backup Data">
-            <Download className="h-5 w-5" />
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-8 pb-8 space-y-6">
+    <div className="h-full flex flex-col overflow-y-auto custom-scrollbar">
+      <div className="px-6 sm:px-8 pt-5 pb-1">
+        <p className="eyebrow">Executive focus</p>
+        <h2 className="font-display text-3xl leading-[1.05] mt-1.5">
+          What deserves the days you have left?
+        </h2>
+        <p className="text-sm text-muted-foreground mt-2">
+          {filled === 0
+            ? 'Nothing chosen yet. That is also a choice.'
+            : filled <= 3
+              ? `${filled} thing${filled === 1 ? '' : 's'}. Everything else is noise.`
+              : `${filled} things. You cannot do ${filled} things. Cut it down.`}
+        </p>
+      </div>
+
+      <div ref={listRef} className="px-6 sm:px-8 py-3 space-y-0.5" data-testid="priorities">
         {priorities.map((priority, i) => (
-          <div key={i} className="group flex items-center gap-4">
-            <span className="text-muted-foreground/80 font-mono text-sm group-hover:text-primary transition-colors">
+          <div key={i} className="group flex items-center gap-4 border-b border-border focus-within:border-primary transition-colors">
+            <span className="font-mono text-xs text-muted-foreground group-focus-within:text-primary tnum">
               {String(i + 1).padStart(2, '0')}
             </span>
-            <div className="flex-1 relative">
-              <Input
-                value={priority}
-                onChange={(e: any) => updatePriority(i, e.target.value)}
-                placeholder={`Priority ${i + 1}`}
-                className="border-0 border-b border-border/50 rounded-none bg-transparent focus-visible:ring-0 focus-visible:border-primary px-0 text-xl font-light text-foreground placeholder:text-muted-foreground transition-colors w-full pr-8"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground/50 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => removePriority(i)}
-                title="Delete Priority"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <input
+              value={priority}
+              onChange={(e) => update(i, e.target.value)}
+              onKeyDown={(e) => onKeyDown(e, i)}
+              placeholder={i === 0 ? 'The one thing that matters most' : `Priority ${i + 1}`}
+              aria-label={`Priority ${i + 1}`}
+              maxLength={140}
+              className="flex-1 min-w-0 bg-transparent py-2.5 text-lg font-light text-foreground placeholder:text-muted-foreground outline-none focus-visible:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => remove(i)}
+              aria-label={`Delete priority ${i + 1}`}
+              className="p-3 -mr-3 text-muted-foreground opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 hover:text-primary transition-opacity"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         ))}
-        <Button variant="ghost" className="w-full text-muted-foreground hover:text-primary" onClick={addPriority}>
-          <Plus className="mr-2 h-4 w-4" /> Add Priority
-        </Button>
-      </CardContent>
-    </Card>
+        <button
+          type="button"
+          onClick={add}
+          className="mt-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors py-2"
+        >
+          <Plus className="h-3.5 w-3.5" /> Add priority
+        </button>
+      </div>
+
+      <div className="mt-auto">
+        <Perspective />
+      </div>
+    </div>
   );
 }
